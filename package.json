@@ -22,6 +22,7 @@
   "homepage": "https://github.com/inukai-norio/cece#readme",
   "devDependencies": {
     "@types/jest": "^26.0.16",
+    "@types/js-yaml": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^4.15.0",
     "@typescript-eslint/parser": "^4.15.0",
     "eslint": "^7.20.0",
