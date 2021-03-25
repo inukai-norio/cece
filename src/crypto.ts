@@ -1,13 +1,5 @@
 import * as crypto from 'crypto';
 
-const pbkdf2 = (hash: string, password: crypto.BinaryLike, salt: crypto.BinaryLike, iterations: number, algorithm: string): { key: Buffer, iv: Buffer} => {
-  const {keySize, ivSize} = getKeySize(algorithm);
-  const ret = crypto.pbkdf2Sync(password, salt, iterations, keySize + ivSize, hash);
-  const key = ret.slice(0, keySize);
-  const iv = ret.slice(keySize, keySize + ivSize);
-  return {key, iv}
-}
-
 const getKeySize = (algorithm: string): { keySize: number, ivSize: number} => {
   const a = algorithm.split('-');
   const keySize = (() => {
@@ -35,6 +27,14 @@ const getKeySize = (algorithm: string): { keySize: number, ivSize: number} => {
     return 8;
   })();
   return {keySize, ivSize}
+}
+
+const pbkdf2 = (hash: string, password: crypto.BinaryLike, salt: crypto.BinaryLike, iterations: number, algorithm: string): { key: Buffer, iv: Buffer} => {
+  const {keySize, ivSize} = getKeySize(algorithm);
+  const ret = crypto.pbkdf2Sync(password, salt, iterations, keySize + ivSize, hash);
+  const key = ret.slice(0, keySize);
+  const iv = ret.slice(keySize, keySize + ivSize);
+  return {key, iv}
 }
 
 export const encrypt = (algorithm: string, hash: string, password: crypto.BinaryLike, salt: crypto.BinaryLike, iterations: number, data: string): string => {
