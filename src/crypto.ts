@@ -16,6 +16,9 @@ export const decryptBase64 = (data: string): Buffer => Buffer.from(data.split('\
 const getKeySize = (algorithm: string): { keySize: number, ivSize: number} => {
   const a = algorithm.split('-');
   const keySize = (() => {
+    if(a[0] === 'sm4') {
+      return 16;
+    }
     if(a[1] === '256') {
       return 32;
     }
@@ -35,6 +38,9 @@ const getKeySize = (algorithm: string): { keySize: number, ivSize: number} => {
       return 16;
     }
     if(a[0] === 'aria') {
+      return 16;
+    }
+    if(a[0] === 'sm4') {
       return 16;
     }
     return 8;
