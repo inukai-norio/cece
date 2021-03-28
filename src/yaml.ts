@@ -37,18 +37,17 @@ const encryptyYaml = (yamlString: string, password: string): string => {
   return yaml.dump(b);
 }
 
-const decryptyYaml = (yamlString: string, password: string): string => {
-  const b = Object.entries(<EncryptData>yaml.load(yamlString)).map((v) => {
-    if (v[1] === undefined) {
-      throw new Error();
-    }
-    return {
-      key: v[0],
-      value: decrypt(v[1].algorithm ,password, decryptBase64(v[1].salt), v[1].encrypt),
-    }
-  }).map((v) => `${v.key}=${v.value}`);
-  return b.join('\n');
+const decryptData = (password: string) => (v: [string, DecryptData]) => {
+  if (v[1] === undefined) {
+    throw new Error();
+  }
+  return {
+    key: v[0],
+    value: decrypt(v[1].algorithm ,password, decryptBase64(v[1].salt), v[1].encrypt),
+  }
 }
+
+const decryptyYaml = (yamlString: string, password: string): string => Object.entries(<EncryptData>yaml.load(yamlString)).map(decryptData(password)).map((v) => `${v.key}=${v.value}`).join('\n');
 
 const e = encryptyYaml(fs.readFileSync('a', {encoding: 'utf8'}),'abc');
 fs.writeFileSync('b', e);
