@@ -25,29 +25,30 @@ class CryptYaml {
 
   public encryptyYaml(password: string): string  {
     const b: EncryptData = {};
-    Object.entries(<DecryptData>yaml.load(this.yamlString)).map((v) => { 
-      if (v[1] === undefined) {
-        throw new Error();
-      }
-      const salt = crypto.randomBytes(32)
-      return {
-        key: v[0],
-        value: {
-          encrypt: encrypt(ALGO, password, salt, v[1]),
-          algorithm: ALGO,
-          salt: encryptBase64(salt),
+    this.yamlString.split(/\n|\r|\r\n/).map((line) => {
+      const v = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/)
+      if (v != null) {
+        const salt = crypto.randomBytes(32)
+        return {
+          key: v[1],
+          value: {
+            encrypt: encrypt(ALGO, password, salt, v[2] || ''),
+            algorithm: ALGO,
+            salt: encryptBase64(salt),
+          }
         }
       }
+      return null;
     }).forEach((v) => {
-      b[v.key] = v.value;
+      if(v !== null) {
+        b[v.key] = v.value;
+      }
     })
-    
     return yaml.dump(b);
   }
   
   public decryptyYaml(password: string): string {
-    const a: DecryptData = {};
-    Object.entries(<EncryptData>yaml.load(this.yamlString)).map((v) => {
+    const b = Object.entries(<EncryptData>yaml.load(this.yamlString)).map((v) => {
       if (v[1] === undefined) {
         throw new Error();
       }
@@ -55,11 +56,8 @@ class CryptYaml {
         key: v[0],
         value: decrypt(v[1].algorithm ,password, decryptBase64(v[1].salt), v[1].encrypt),
       }
-    }).forEach((v) => {
-      a[v.key] = v.value;
-    });
-    
-    return yaml.dump(a);
+    }).map((v) => `${v.key}=${v.value}`);
+    return b.join('\n');
   }
 }
 
