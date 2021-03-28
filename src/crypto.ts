@@ -34,7 +34,7 @@ const getKeySize = (algorithm: string): { keySize: number, ivSize: number} => {
     if(a[0] === 'camellia') {
       return 16;
     }
-    if(a[0] === 'seed') {
+    if(a[0] === 'aria') {
       return 16;
     }
     return 8;
