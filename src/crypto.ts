@@ -29,24 +29,24 @@ const getKeySize = (algorithm: string): { keySize: number, ivSize: number} => {
   return {keySize, ivSize}
 }
 
-const pbkdf2 = (hash: string, password: crypto.BinaryLike, salt: crypto.BinaryLike, iterations: number, algorithm: string): { key: Buffer, iv: Buffer} => {
+const scrypt = (password: crypto.BinaryLike, salt: crypto.BinaryLike, algorithm: string): { key: Buffer, iv: Buffer} => {
   const {keySize, ivSize} = getKeySize(algorithm);
-  const ret = crypto.pbkdf2Sync(password, salt, iterations, keySize + ivSize, hash);
+  const ret = crypto.scryptSync(password, salt, keySize + ivSize)
   const key = ret.slice(0, keySize);
   const iv = ret.slice(keySize, keySize + ivSize);
   return {key, iv}
 }
 
-export const encrypt = (algorithm: string, hash: string, password: crypto.BinaryLike, salt: crypto.BinaryLike, iterations: number, data: string): string => {
-  const {key, iv} = pbkdf2(hash, password, salt, iterations, algorithm)
+export const encrypt = (algorithm: string, password: crypto.BinaryLike, salt: crypto.BinaryLike, data: string): string => {
+  const {key, iv} = scrypt(password, salt, algorithm)
   const cipher = crypto.createCipheriv(algorithm, key, iv);
   let encryptedData = cipher.update(Buffer.from(data, 'utf-8'));
   encryptedData = Buffer.concat([encryptedData, cipher.final()])
   return encryptedData.toString('base64')
 }
 
-export const decrypt = (algorithm: string, hash: string, password: crypto.BinaryLike, salt: crypto.BinaryLike, iterations: number, data: string): string => {
-  const {key, iv} = pbkdf2(hash, password, salt, iterations, algorithm)
+export const decrypt = (algorithm: string, password: crypto.BinaryLike, salt: crypto.BinaryLike, data: string): string => {
+  const {key, iv} = scrypt(password, salt, algorithm)
   const decipher = crypto.createDecipheriv(algorithm, key, iv)
   let decryptedData = decipher.update(Buffer.from(data, 'base64'))
   decryptedData =  Buffer.concat([decryptedData, decipher.final()])
