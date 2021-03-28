@@ -5,13 +5,13 @@ import { encrypt, decrypt, encryptBase64, decryptBase64 } from './crypto';
 
 const ALGO = 'camellia-256-cbc'
 
-type EncryptData = {[feald: string]: {
+type Data = {
   encrypt: string;
   algorithm: string;
   salt: string;
-}}
+}
 
-type DecryptData = {[feald: string]: string}
+type EncryptData = {[feald: string]: Data}
 
 const encryptyYaml = (yamlString: string, password: string): string => {
   const b: EncryptData = {};
@@ -37,7 +37,7 @@ const encryptyYaml = (yamlString: string, password: string): string => {
   return yaml.dump(b);
 }
 
-const decryptData = (password: string) => (v: [string, DecryptData]) => {
+const decryptData = (password: string) => (v: [string, Data]) => {
   if (v[1] === undefined) {
     throw new Error();
   }
