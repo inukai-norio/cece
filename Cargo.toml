@@ -1,0 +1,14 @@
+[package]
+name = "cece_rust"
+version = "0.1.0"
+authors = ["jj1uty <jj1uty@jarl.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+crypto2 = "0.1.1"
+rand = "0.8.0"
+rand_chacha = "0.3.0"
+base64 = "0.13.0"
+regex = "1.5"
