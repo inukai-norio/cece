@@ -16,7 +16,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut file = File::create("d")?;
     for result in BufReader::new(File::open("a")?).lines() {
         let l = result?;
-        // println!("{}", l);
 
         let mut data = [0u8; 32];
         csp_rng.fill_bytes(&mut data);
@@ -28,7 +27,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let c = base64::encode(&b[..]);
 
         let d = format!("{}={}:{}:{}:{}", r.get(1).unwrap().as_str(), algo, salt, info, c);
-        // println!("{}", d);
         let _ = writeln!(file, "{}", d);
     }
     file.flush()?;
@@ -40,7 +38,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let y = &base64::decode(caps.get(5).unwrap().as_str()).unwrap();
         let z = crypto::decrypt(caps.get(2).unwrap().as_str(), passwd, caps.get(3).unwrap().as_str(), caps.get(4).unwrap().as_str(), y.to_vec());
         let zz = format!("{}={}", caps.get(1).unwrap().as_str(), z);
-        // println!("{}", zz);
         let _ = writeln!(file2, "{}", zz);
     }
     file2.flush()?;
