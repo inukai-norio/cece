@@ -21,7 +21,7 @@ fn main() {
         csp_rng.fill_bytes(&mut data);
 
         let salt = &base64::encode(&data[..]);
-        let r = Regex::new(r"([^=]+)=(.*)").unwrap().captures(&l).unwrap();
+        let r = Regex::new(r"^([^=]+)=(.*)$").unwrap().captures(&l).unwrap();
         
         let b = crypto::encrypt(algo, passwd, salt, info, r.get(2).unwrap().as_str());
         let c = base64::encode(&b[..]);
@@ -34,7 +34,7 @@ fn main() {
     let mut file2 = File::create("e").unwrap();
     for result in BufReader::new(File::open("d").unwrap()).lines() {
         let l = result.unwrap();
-        let caps = Regex::new(r"([^=]+)=([^:]+):([0-9A-Za-z+/=]+):([^:]*):([0-9A-Za-z+/=]+)").unwrap().captures(&l).unwrap();
+        let caps = Regex::new(r"^([^=]+)=([^:]+):([0-9A-Za-z+/=]+):([^:]*):([0-9A-Za-z+/=]+)$").unwrap().captures(&l).unwrap();
         let y = &base64::decode(caps.get(5).unwrap().as_str()).unwrap();
         let z = crypto::decrypt(caps.get(2).unwrap().as_str(), passwd, caps.get(3).unwrap().as_str(), caps.get(4).unwrap().as_str(), y.to_vec());
         let zz = format!("{}={}", caps.get(1).unwrap().as_str(), z);
