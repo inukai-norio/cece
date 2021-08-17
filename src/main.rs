@@ -32,20 +32,20 @@ fn encode(passwd: &str, algo: &str, info: &str) {
 }
 
 fn decode(passwd: &str) {
-    let mut file2 = File::create("e").unwrap();
+    let mut file = File::create("e").unwrap();
     for result in BufReader::new(File::open("d").unwrap()).lines() {
         let l = result.unwrap();
         if Regex::new(r"^(#.*|\s*)$").unwrap().is_match(&l) {
-            let _ = writeln!(file2, "{}", l);
+            let _ = writeln!(file, "{}", l);
             continue;
         }
         let caps = Regex::new(r"^([^=]+)=([^:]+):([0-9A-Za-z+/=]+):([^:]*):([0-9A-Za-z+/=]+)$").unwrap().captures(&l).unwrap();
         let y = &base64::decode(caps.get(5).unwrap().as_str()).unwrap();
         let z = crypto::decrypt(caps.get(2).unwrap().as_str(), passwd, caps.get(3).unwrap().as_str(), caps.get(4).unwrap().as_str(), y.to_vec());
         let zz = format!("{}={}", caps.get(1).unwrap().as_str(), z);
-        let _ = writeln!(file2, "{}", zz);
+        let _ = writeln!(file, "{}", zz);
     }
-    file2.flush().unwrap();
+    file.flush().unwrap();
 }
 
 fn main() {
