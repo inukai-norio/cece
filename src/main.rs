@@ -6,13 +6,8 @@ use regex::Regex;
 
 mod crypto;
 
-fn main() {
+fn encode(passwd: &str, algo: &str, info: &str) {
     let mut csp_rng = ChaCha20Rng::from_entropy();
-
-    let passwd = "1234567890";
-    let algo = "sha256-aria192-cbc";
-    let info = "";
-
     let mut file = File::create("d").unwrap();
     for result in BufReader::new(File::open("a").unwrap()).lines() {
         let l = result.unwrap();
@@ -34,7 +29,9 @@ fn main() {
         let _ = writeln!(file, "{}", d);
     }
     file.flush().unwrap();
+}
 
+fn decode(passwd: &str) {
     let mut file2 = File::create("e").unwrap();
     for result in BufReader::new(File::open("d").unwrap()).lines() {
         let l = result.unwrap();
@@ -49,4 +46,12 @@ fn main() {
         let _ = writeln!(file2, "{}", zz);
     }
     file2.flush().unwrap();
+}
+
+fn main() {
+    let passwd = "1234567890";
+    let algo = "sha256-aria192-cbc";
+    let info = "";
+    encode(passwd, algo, info);
+    decode(passwd);
 }
