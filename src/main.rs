@@ -6,6 +6,10 @@ use regex::Regex;
 
 mod crypto;
 
+fn is_comment(l: &str) -> bool {
+    return Regex::new(r"^(#.*|\s*)$").unwrap().is_match(l);
+}
+
 fn encode(passwd: &str, algo: &str, info: &str) {
     let mut csp_rng = ChaCha20Rng::from_entropy();
     let mut file = File::create("d").unwrap();
@@ -16,7 +20,7 @@ fn encode(passwd: &str, algo: &str, info: &str) {
         csp_rng.fill_bytes(&mut data);
 
         let salt = &base64::encode(&data[..]);
-        if Regex::new(r"^(#.*|\s*)$").unwrap().is_match(&l) {
+        if is_comment(&l) {
             let _ = writeln!(file, "{}", l);
             continue;
         }
@@ -35,7 +39,7 @@ fn decode(passwd: &str) {
     let mut file = File::create("e").unwrap();
     for result in BufReader::new(File::open("d").unwrap()).lines() {
         let l = result.unwrap();
-        if Regex::new(r"^(#.*|\s*)$").unwrap().is_match(&l) {
+        if is_comment(&l) {
             let _ = writeln!(file, "{}", l);
             continue;
         }
