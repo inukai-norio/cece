@@ -10,10 +10,10 @@ fn is_comment(l: &str) -> bool {
     return Regex::new(r"^(#.*|\s*)$").unwrap().is_match(l);
 }
 
-fn encode(passwd: &str, algo: &str, info: &str) {
+fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
     let mut csp_rng = ChaCha20Rng::from_entropy();
-    let mut file = File::create("d").unwrap();
-    for result in BufReader::new(File::open("a").unwrap()).lines() {
+    let mut file = File::create(outfile).unwrap();
+    for result in BufReader::new(File::open(infile).unwrap()).lines() {
         let l = result.unwrap();
 
         let mut data = [0u8; 32];
@@ -35,9 +35,9 @@ fn encode(passwd: &str, algo: &str, info: &str) {
     file.flush().unwrap();
 }
 
-fn decode(passwd: &str) {
-    let mut file = File::create("e").unwrap();
-    for result in BufReader::new(File::open("d").unwrap()).lines() {
+fn decode(infile: &str, outfile: &str, passwd: &str) {
+    let mut file = File::create(outfile).unwrap();
+    for result in BufReader::new(File::open(infile).unwrap()).lines() {
         let l = result.unwrap();
         if is_comment(&l) {
             let _ = writeln!(file, "{}", l);
@@ -56,6 +56,6 @@ fn main() {
     let passwd = "1234567890";
     let algo = "sha256-aria192-cbc";
     let info = "";
-    encode(passwd, algo, info);
-    decode(passwd);
+    encode("a", "y", passwd, algo, info);
+    decode("y", "z", passwd);
 }
