@@ -15,8 +15,8 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          components: clippy
           override: ture
-          default: ture
       - run: cargo version
       - run: cargo build --verbose
       - run: bash test.sh
