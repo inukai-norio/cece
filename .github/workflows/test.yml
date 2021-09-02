@@ -16,5 +16,6 @@ jobs:
         with:
           toolchain: stable
           override: ture
+          default: ture
       - run: cargo build --verbose
       - run: bash test.sh
