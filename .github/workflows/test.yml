@@ -13,8 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
-        with:
-          profile: complete
       - run: echo $PATH
       - run: cargo version
       - run: cargo build --verbose
