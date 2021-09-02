@@ -15,8 +15,8 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          components: clippy
           override: ture
-          default: ture
       - run: which cargo
       - run: ls /usr/share/rust/.cargo/bin/
       - uses: actions-rs/cargo@v1
