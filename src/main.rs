@@ -1,3 +1,8 @@
+extern crate getopts;
+
+use getopts::Options;
+use std::env;
+use std::process;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use rand::prelude::*;
@@ -52,10 +57,52 @@ fn decode(infile: &str, outfile: &str, passwd: &str) {
     file.flush().unwrap();
 }
 
+fn print_usage(exe_name: &str, opts: &Options) {
+    let brief = format!("Usage: {} REPEAT [Options]", exe_name);
+    print!("{}", opts.usage(&brief));
+    process::exit(0);
+}
+
 fn main() {
-    let passwd = "1234567890";
-    let algo = "sha256-aria192-cbc";
-    let info = "";
-    encode("a", "y", passwd, algo, info);
-    decode("y", "z", passwd);
+    let args: Vec<String> = env::args().collect();
+
+    let mut opts = Options::new();
+
+    opts.optflag("e", "encode", "encode mode");
+    opts.optflag("d", "decode", "decode mode");
+
+    opts.optopt("i", "in", "set input file name", "FILE");
+    opts.optopt("o", "out", "set output file name", "FILE");
+
+    opts.optopt("p", "passwd", "password", "PASSWORD");
+    opts.optopt("n", "info", "info", "INFO");
+    opts.optopt("a", "algo", "algorithm", "ALGORITHM");
+
+    opts.optflag("h", "help", "print this help");
+
+    let matches = opts.parse(&args[1..]).unwrap_or_else(|f| panic!("{}",f.to_string()));
+
+    if matches.opt_present("h") {
+        print_usage(&args[0], &opts);
+    }
+
+    let input = matches.opt_str("i").unwrap_or_default();
+    let output = matches.opt_str("o").unwrap_or_default();
+    let passwd = matches.opt_str("p").unwrap_or_default();
+    let info = matches.opt_str("n").unwrap_or_default();
+    let algo = matches.opt_str("a").unwrap_or("sha256-aes128-cbc".to_string());
+
+    if input == "" || output == "" {
+        panic!("{}","none file name".to_string());
+    }
+    if matches.opt_present("e") {
+        if matches.opt_present("d") == false {
+            return encode(&input, &output, &passwd, &algo, &info);
+        }
+        panic!("{}","-e or -d".to_string());
+    }
+    if matches.opt_present("d") {
+        return decode(&input, &output, &passwd);
+    }
+    panic!("{}","-e or -d".to_string());
 }
