@@ -17,6 +17,7 @@ jobs:
           toolchain: nightly
           components: clippy
           override: ture
+      - run: echo $PATH
       - run: cargo version
       - run: cargo build --verbose
       - run: bash test.sh
