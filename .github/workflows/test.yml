@@ -21,8 +21,7 @@ jobs:
       - run: ls /usr/share/rust/.cargo/bin/
       - uses: actions-rs/cargo@v1
         with:
-          command: build
-          args: version
+          command: version
       - run: cargo version
       - run: cargo build --verbose
       - run: bash test.sh
