@@ -18,6 +18,7 @@ jobs:
           override: ture
           default: ture
       - run: which cargo
+      - run: ls /usr/share/rust/.cargo/bin/
       - run: cargo version
       - run: cargo build --verbose
       - run: bash test.sh
