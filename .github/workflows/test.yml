@@ -15,5 +15,6 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          override: ture
       - run: cargo build --verbose
       - run: bash test.sh
