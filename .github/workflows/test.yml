@@ -16,11 +16,5 @@ jobs:
         with:
           toolchain: nightly
           override: true
-      - run: which cargo
-      - run: ls /usr/share/rust/.cargo/bin/
-      - uses: actions-rs/cargo@v1
-        with:
-          command: version
-      - run: cargo version
       - run: cargo build --verbose
       - run: bash test.sh
