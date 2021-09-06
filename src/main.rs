@@ -96,7 +96,7 @@ fn main() {
         panic!("{}","none file name".to_string());
     }
     if matches.opt_present("e") {
-        if matches.opt_present("d") == false {
+        if !matches.opt_present("d") {
             return encode(&input, &output, &passwd, &algo, &info);
         }
         panic!("{}","-e or -d".to_string());
