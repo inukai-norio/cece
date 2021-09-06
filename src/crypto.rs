@@ -13,7 +13,7 @@ mod pkcs7 {
         for a in vec![d; d.into()] {
             plaintext.push(a);
         }
-        plaintext;
+        return plaintext;
     }
     
     pub fn decrypt(data: Vec<u8>)-> Vec<u8> {
@@ -24,7 +24,7 @@ mod pkcs7 {
     //            Err('???');
             }
         }
-        plaintext;
+        return plaintext;
     }    
 }
 

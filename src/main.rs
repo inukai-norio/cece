@@ -12,7 +12,7 @@ use regex::Regex;
 mod crypto;
 
 fn is_comment(l: &str) -> bool {
-    Regex::new(r"^(#.*|\s*)$").unwrap().is_match(l);
+    return Regex::new(r"^(#.*|\s*)$").unwrap().is_match(l);
 }
 
 fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
