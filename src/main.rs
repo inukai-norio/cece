@@ -92,7 +92,7 @@ fn main() {
     let info = matches.opt_str("n").unwrap_or_default();
     let algo = matches.opt_str("a").unwrap_or("sha256-aes128-cbc".to_string());
 
-    if input == "" || output == "" {
+    if input.is_empty() || output.is_empty() {
         panic!("{}","none file name".to_string());
     }
     if matches.opt_present("e") {
