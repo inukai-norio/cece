@@ -90,7 +90,7 @@ fn main() {
     let output = matches.opt_str("o").unwrap_or_default();
     let passwd = matches.opt_str("p").unwrap_or_default();
     let info = matches.opt_str("n").unwrap_or_default();
-    let algo = matches.opt_str("a").unwrap_or("sha256-aes128-cbc".to_string());
+    let algo = matches.opt_str("a").unwrap_or_else(|| "sha256-aes128-cbc".to_string());
 
     if input.is_empty() || output.is_empty() {
         panic!("{}","none file name".to_string());
