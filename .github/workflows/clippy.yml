@@ -1,0 +1,14 @@
+on: [push]
+
+name: clippy
+
+jobs:
+  clippy:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: run cargo clippy
+        run: cargo clippy
