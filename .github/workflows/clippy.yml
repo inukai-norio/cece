@@ -1,6 +1,6 @@
 on:
   push:
-    path:
+    paths:
       - 'src/*'
 
 name: clippy
