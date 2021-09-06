@@ -1,7 +1,7 @@
 on:
   push:
     paths:
-      - 'src/*'
+      - 'src/*.rs'
 
 name: clippy
 
