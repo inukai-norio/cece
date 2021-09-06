@@ -13,7 +13,7 @@ mod pkcs7 {
         for a in vec![d; d.into()] {
             plaintext.push(a);
         }
-        return plaintext;
+        plaintext;
     }
     
     pub fn decrypt(data: Vec<u8>)-> Vec<u8> {
@@ -24,7 +24,7 @@ mod pkcs7 {
     //            Err('???');
             }
         }
-        return plaintext;
+        plaintext;
     }    
 }
 
@@ -125,7 +125,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             "camellia192" => cbc_encrypt!(Camellia192Cbc),
             "camellia256" => cbc_encrypt!(Camellia256Cbc),
             "sm4" =>         cbc_encrypt!(Sm4Cbc),
-            _ => return vec![0u8]
+            _ => vec![0u8]
         },
         "cfb1" => match a[1] {
             "aes128" =>      cfb_encrypt!(Aes128Cfb1),
@@ -138,7 +138,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             "camellia192" => cfb_encrypt!(Camellia192Cfb1),
             "camellia256" => cfb_encrypt!(Camellia256Cfb1),
             "sm4" =>         cfb_encrypt!(Sm4Cfb1),
-            _ => return vec![0u8]
+            _ => vec![0u8]
         },
         "cfb8" => match a[1] {
             "aes128" =>      cfb_encrypt!(Aes128Cfb8),
@@ -151,7 +151,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             "camellia192" => cfb_encrypt!(Camellia192Cfb8),
             "camellia256" => cfb_encrypt!(Camellia256Cfb8),
             "sm4" =>         cfb_encrypt!(Sm4Cfb8),
-            _ => return vec![0u8]
+            _ => vec![0u8]
         },
         "cfb64" => match a[1] {
             "aes128" =>      cfb64_encrypt!(Aes128Cfb64),
@@ -164,7 +164,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             "camellia192" => cfb64_encrypt!(Camellia192Cfb64),
             "camellia256" => cfb64_encrypt!(Camellia256Cfb64),
             "sm4" =>         cfb64_encrypt!(Sm4Cfb64),
-            _ => return vec![0u8]
+            _ => vec![0u8]
         },
         "cfb128" => match a[1] {
             "aes128" =>      cfb_encrypt!(Aes128Cfb128),
@@ -177,7 +177,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             "camellia192" => cfb_encrypt!(Camellia192Cfb128),
             "camellia256" => cfb_encrypt!(Camellia256Cfb128),
             "sm4" =>         cfb_encrypt!(Sm4Cfb128),
-            _ => return vec![0u8]
+            _ => vec![0u8]
         },
         "ofb" => match a[1] {
             "aes128" =>      ofb_encrypt!(Aes128Ofb),
@@ -190,9 +190,9 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             "camellia192" => ofb_encrypt!(Camellia192Ofb),
             "camellia256" => ofb_encrypt!(Camellia256Ofb),
             "sm4" =>         ofb_encrypt!(Sm4Ofb),
-            _ => return vec![0u8]
+            _ => vec![0u8]
         }
-        _ => return vec![0u8]
+        _ => vec![0u8]
     }
 }
 
@@ -251,7 +251,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             "camellia192" => cbc_decrypt!(Camellia192Cbc),
             "camellia256" => cbc_decrypt!(Camellia256Cbc),
             "sm4" =>         cbc_decrypt!(Sm4Cbc),
-            _ => return "".to_string()
+            _ => "".to_string()
         },
         "cfb1" => match a[1] {
             "aes128" =>      cfb_decrypt!(Aes128Cfb1),
@@ -264,7 +264,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             "camellia192" => cfb_decrypt!(Camellia192Cfb1),
             "camellia256" => cfb_decrypt!(Camellia256Cfb1),
             "sm4" =>         cfb_decrypt!(Sm4Cfb1),
-            _ => return "".to_string()
+            _ => "".to_string()
         },
         "cfb8" => match a[1] {
             "aes128" =>      cfb_decrypt!(Aes128Cfb8),
@@ -277,7 +277,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             "camellia192" => cfb_decrypt!(Camellia192Cfb8),
             "camellia256" => cfb_decrypt!(Camellia256Cfb8),
             "sm4" =>         cfb_decrypt!(Sm4Cfb8),
-            _ => return "".to_string()
+            _ => "".to_string()
         },
         "cfb64" => match a[1] {
             "aes128" =>      cfb64_decrypt!(Aes128Cfb64),
@@ -290,7 +290,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             "camellia192" => cfb64_decrypt!(Camellia192Cfb64),
             "camellia256" => cfb64_decrypt!(Camellia256Cfb64),
             "sm4" =>         cfb64_decrypt!(Sm4Cfb64),
-            _ => return "".to_string()
+            _ => "".to_string()
         },
         "cfb128" => match a[1] {
             "aes128" =>      cfb_decrypt!(Aes128Cfb128),
@@ -303,7 +303,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             "camellia192" => cfb_decrypt!(Camellia192Cfb128),
             "camellia256" => cfb_decrypt!(Camellia256Cfb128),
             "sm4" =>         cfb_decrypt!(Sm4Cfb128),
-            _ => return "".to_string()
+            _ => "".to_string()
         },
         "ofb" => match a[1] {
             "aes128" =>      ofb_decrypt!(Aes128Ofb),
@@ -316,8 +316,8 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             "camellia192" => ofb_decrypt!(Camellia192Ofb),
             "camellia256" => ofb_decrypt!(Camellia256Ofb),
             "sm4" =>         ofb_decrypt!(Sm4Ofb),
-            _ => return "".to_string()
+            _ => "".to_string()
         }
-        _ => return "".to_string()
+        _ => "".to_string()
     }
 }
