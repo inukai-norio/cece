@@ -1,6 +1,9 @@
 on:
-  release:
-    types: [published]
+  #  release:
+  #  types: [published]
+  push:
+    branch:
+      - master
 
 name: build and release stable version
 
