@@ -22,7 +22,7 @@ jobs:
           args: --release
       - name: Zip binary for Linux(x86_64)
         run: |
-          zip cece-linux-x86_64 target/release/cece.rust
+          zip cece-linux-x86_64 target/release/cece_rust
       - name: Store zip
         uses: actions/upload-artifact@v2
         with:
