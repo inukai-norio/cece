@@ -1,0 +1,72 @@
+on:
+  release:
+    types: [published]
+
+name: build and release stable version
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+      - name: Release build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - name: Zip binary for Linux(x86_64)
+        run: |
+          zip cece-linux-x86_64 target/release/cece.rust
+      - name: Store zip
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux(x86_64) build
+          path: cece-linux-x86_64.zip
+
+  create-release:
+    needs: [build-linux]
+    runs-on: ubuntu-20.04
+    steps:
+      - id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: true
+      - run: |
+          echo '${{ steps.create-release.outputs.upload_url }}' > release_upload_url.txt
+      - uses: actions/upload-artifact@v1
+        with:
+          name: create-release
+          path: release_upload_url.txte
+
+  publish-release:
+    needs: [create-release]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/download-artifact@v1
+        with:
+          name: create-release
+      - id: upload-url
+        run: |
+          echo "::set-output name=url::$(cat create-release/release_upload_url.txt)"
+      - uses: actions/download-artifact@v1
+        with:
+          name: build-linux
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: $｛｛ secrets.GITHUB_TOKEN ｝｝
+        with:
+          upload_url: $｛｛ steps.upload-url.outputs.url ｝｝
+          asset_path: cece-linux-x86_64.zip
+          asset_name: cece-linux-x86_64.zip
+          asset_content_type: application/zip
