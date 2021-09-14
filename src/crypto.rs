@@ -46,7 +46,7 @@ fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize
     let mut duf = [0u8; 128];
     macro_rules! hkdf_oneshot {
         ($c:tt) => {
-            $c::oneshot(&base64::decode(salt).unwrap(), password.as_bytes(), info.as_bytes(), &mut duf);
+            $c::oneshot(&base64::decode(salt).unwrap(), password.as_bytes(), info.as_bytes(), &mut duf)
         }
     }
     match algorithm {
