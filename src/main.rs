@@ -97,12 +97,12 @@ fn main() {
     }
     if matches.opt_present("e") {
         if !matches.opt_present("d") {
-            encode(&input, &output, &passwd, &algo, &info)
+            return encode(&input, &output, &passwd, &algo, &info);
         }
         panic!("{}","-e or -d".to_string());
     }
     if matches.opt_present("d") {
-        decode(&input, &output, &passwd)
+        return decode(&input, &output, &passwd);
     }
     panic!("{}","-e or -d".to_string());
 }
