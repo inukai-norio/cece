@@ -13,7 +13,7 @@ mod pkcs7 {
         for a in vec![d; d.into()] {
             plaintext.push(a);
         }
-        return plaintext;
+        plaintext
     }
     
     pub fn decrypt(data: Vec<u8>)-> Vec<u8> {
@@ -24,7 +24,7 @@ mod pkcs7 {
     //            Err('???');
             }
         }
-        return plaintext;
+        plaintext
     }    
 }
 
@@ -67,7 +67,7 @@ fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize
     for i in 0..iv_len {
         iv[i] = okm.pop_front().unwrap();
     }
-    return (key, iv);
+    (key, iv)
 }
 
 pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &str)-> Vec<u8> {
@@ -79,7 +79,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
                 let mut ciphertext = pkcs7::encrypt(data.as_bytes().to_vec(), $cipher::BLOCK_LEN);
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
                 $cipher::new(&key).encrypt(&iv, &mut ciphertext);
-                return ciphertext.to_vec();
+                ciphertext.to_vec()
             }
         }
     }
@@ -89,7 +89,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
                 let mut ciphertext = pkcs7::encrypt(data.as_bytes().to_vec(), $cipher::BLOCK_LEN);
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
                 $cipher::new(&key).encrypt_slice(&iv, &mut ciphertext);
-                return ciphertext.to_vec();
+                ciphertext.to_vec()
             }
         }
     }
@@ -99,7 +99,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
                 let mut ciphertext = pkcs7::encrypt(data.as_bytes().to_vec(), $cipher::BLOCK_LEN);
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
                 $cipher::new(&key).encrypt(&iv, &mut ciphertext);
-                return ciphertext.to_vec();
+                ciphertext.to_vec()
             }
         }
     }
@@ -109,7 +109,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
                 let mut ciphertext = pkcs7::encrypt(data.as_bytes().to_vec(), $cipher::BLOCK_LEN);
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
                 $cipher::new(&key).encrypt_slice(&iv, &mut ciphertext);
-                return ciphertext.to_vec();
+                ciphertext.to_vec()
             }
         }
     }
@@ -205,7 +205,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
                 let mut ciphertext = data.clone();
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
                 $cipher::new(&key).decrypt(&iv, &mut ciphertext);
-                return String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap();
+                String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap()
             }
         }
     }
@@ -215,7 +215,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
                 let mut ciphertext = data.clone();
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
                 $cipher::new(&key).decrypt_slice(&iv, &mut ciphertext);
-                return String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap();
+                String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap()
             }
         }
     }
@@ -225,7 +225,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
                 let mut ciphertext = data.clone();
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
                 $cipher::new(&key).decrypt(&iv, &mut ciphertext);
-                return String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap();
+                String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap()
             }
         }
     }
@@ -235,7 +235,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
                 let mut ciphertext = data.clone();
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
                 $cipher::new(&key).decrypt_slice(&iv, &mut ciphertext);
-                return String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap();
+                String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap()
             }
         }
     }
