@@ -9,7 +9,7 @@ mod pkcs7 {
     pub fn encrypt(data: Vec<u8>, block_len: usize)-> Vec<u8> {
         let len = data.len();
         let d: u8 = std::convert::TryFrom::try_from(block_len - (len % block_len)).unwrap();
-        let mut plaintext = data.clone();
+        let mut plaintext = data;
         for a in vec![d; d.into()] {
             plaintext.push(a);
         }
@@ -17,7 +17,7 @@ mod pkcs7 {
     }
     
     pub fn decrypt(data: Vec<u8>)-> Vec<u8> {
-        let mut plaintext = data.clone();
+        let mut plaintext = data;
         let l = plaintext.pop();
         for _i in 2..=l.unwrap() {
             if plaintext.pop() != l {
