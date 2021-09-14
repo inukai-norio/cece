@@ -60,8 +60,8 @@ fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize
         key.push(okm.pop_front().unwrap());
     }
     let mut iv: Vec<u8> = Vec::new();
-    for i in 0..iv_len {
-        iv[i] = okm.pop_front().unwrap();
+    for _i in 0..iv_len {
+        iv.push(okm.pop_front().unwrap());
     }
     (key, iv)
 }
