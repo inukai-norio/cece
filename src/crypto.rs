@@ -38,7 +38,7 @@ fn check_algorithm(algorithm: &str)-> Option<[&str; 3]> {
     }
 }
 
-fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize, iv_len: usize)-> (Vec<u8>, [u8; 16]) {
+fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize, iv_len: usize)-> (Vec<u8>, Vec<u8>) {
     let mut duf = [0u8; 128];
     macro_rules! hkdf_oneshot {
         ($c:tt) => {
@@ -59,7 +59,7 @@ fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize
     for _i in 0..key_len {
         key.push(okm.pop_front().unwrap());
     }
-    let mut iv = [0u8; 16];
+    let mut iv: Vec<u8> = Vec::new();
     for i in 0..iv_len {
         iv[i] = okm.pop_front().unwrap();
     }
@@ -74,7 +74,8 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             {
                 let mut ciphertext = pkcs7::encrypt(data.as_bytes().to_vec(), $cipher::BLOCK_LEN);
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
-                $cipher::new(&key).encrypt(&iv, &mut ciphertext);
+                let iv_a = [0u8; $cipher::IV_LEN].map(|_| *iv.iter().next().unwrap());
+                $cipher::new(&key).encrypt(&iv_a, &mut ciphertext);
                 ciphertext.to_vec()
             }
         }
@@ -84,7 +85,8 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             {
                 let mut ciphertext = pkcs7::encrypt(data.as_bytes().to_vec(), $cipher::BLOCK_LEN);
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
-                $cipher::new(&key).encrypt_slice(&iv, &mut ciphertext);
+                let iv_a = [0u8; $cipher::IV_LEN].map(|_| *iv.iter().next().unwrap());
+                $cipher::new(&key).encrypt_slice(&iv_a, &mut ciphertext);
                 ciphertext.to_vec()
             }
         }
@@ -94,7 +96,8 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             {
                 let mut ciphertext = pkcs7::encrypt(data.as_bytes().to_vec(), $cipher::BLOCK_LEN);
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
-                $cipher::new(&key).encrypt(&iv, &mut ciphertext);
+                let iv_a = [0u8; $cipher::IV_LEN].map(|_| *iv.iter().next().unwrap());
+                $cipher::new(&key).encrypt(&iv_a, &mut ciphertext);
                 ciphertext.to_vec()
             }
         }
@@ -104,7 +107,8 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             {
                 let mut ciphertext = pkcs7::encrypt(data.as_bytes().to_vec(), $cipher::BLOCK_LEN);
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
-                $cipher::new(&key).encrypt_slice(&iv, &mut ciphertext);
+                let iv_a = [0u8; $cipher::IV_LEN].map(|_| *iv.iter().next().unwrap());
+                $cipher::new(&key).encrypt_slice(&iv_a, &mut ciphertext);
                 ciphertext.to_vec()
             }
         }
@@ -200,7 +204,8 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             {
                 let mut ciphertext = data.clone();
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
-                $cipher::new(&key).decrypt(&iv, &mut ciphertext);
+                let iv_a = [0u8; $cipher::IV_LEN].map(|_| *iv.iter().next().unwrap());
+                $cipher::new(&key).decrypt(&iv_a, &mut ciphertext);
                 String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap()
             }
         }
@@ -210,7 +215,8 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             {
                 let mut ciphertext = data.clone();
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
-                $cipher::new(&key).decrypt_slice(&iv, &mut ciphertext);
+                let iv_a = [0u8; $cipher::IV_LEN].map(|_| *iv.iter().next().unwrap());
+                $cipher::new(&key).decrypt_slice(&iv_a, &mut ciphertext);
                 String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap()
             }
         }
@@ -220,7 +226,8 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             {
                 let mut ciphertext = data.clone();
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
-                $cipher::new(&key).decrypt(&iv, &mut ciphertext);
+                let iv_a = [0u8; $cipher::IV_LEN].map(|_| *iv.iter().next().unwrap());
+                $cipher::new(&key).decrypt(&iv_a, &mut ciphertext);
                 String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap()
             }
         }
@@ -230,7 +237,8 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             {
                 let mut ciphertext = data.clone();
                 let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
-                $cipher::new(&key).decrypt_slice(&iv, &mut ciphertext);
+                let iv_a = [0u8; $cipher::IV_LEN].map(|_| *iv.iter().next().unwrap());
+                $cipher::new(&key).decrypt_slice(&iv_a, &mut ciphertext);
                 String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap()
             }
         }
