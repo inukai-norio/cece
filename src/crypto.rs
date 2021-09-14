@@ -9,22 +9,22 @@ mod pkcs7 {
     pub fn encrypt(data: Vec<u8>, block_len: usize)-> Vec<u8> {
         let len = data.len();
         let d: u8 = std::convert::TryFrom::try_from(block_len - (len % block_len)).unwrap();
-        let mut plaintext = data.clone();
+        let mut plaintext = data;
         for a in vec![d; d.into()] {
             plaintext.push(a);
         }
-        return plaintext;
+        plaintext
     }
     
     pub fn decrypt(data: Vec<u8>)-> Vec<u8> {
-        let mut plaintext = data.clone();
+        let mut plaintext = data;
         let l = plaintext.pop();
         for _i in 2..=l.unwrap() {
             if plaintext.pop() != l {
     //            Err('???');
             }
         }
-        return plaintext;
+        plaintext
     }    
 }
 
@@ -32,21 +32,17 @@ fn check_algorithm(algorithm: &str)-> Option<[&str; 3]> {
     let re = Regex::new(r"(sha(?:224|256|384|512)|sm3)-((?:aes|aria|camellia)(?:128|192|256)|sm4)-(cbc|cfb|ofb(?:1|8|64|128))").unwrap();
     if re.is_match(algorithm) {
         let caps = re.captures(algorithm).unwrap();
-        let mut ret = [""; 3];
-        for i in 0..3 {
-            ret[i] = caps.get(i+1).unwrap().as_str();
-        }
-        Some(ret)
+        Some([1, 2, 3].map(|i| caps.get(i).unwrap().as_str()))
     } else {
         None
     }
 }
 
-fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize, iv_len: usize)-> (Vec<u8>, [u8; 16]) {
+fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize, iv_len: usize)-> (Vec<u8>, Vec<u8>) {
     let mut duf = [0u8; 128];
     macro_rules! hkdf_oneshot {
         ($c:tt) => {
-            $c::oneshot(&base64::decode(salt).unwrap(), password.as_bytes(), info.as_bytes(), &mut duf);
+            $c::oneshot(&base64::decode(salt).unwrap(), password.as_bytes(), info.as_bytes(), &mut duf)
         }
     }
     match algorithm {
@@ -63,23 +59,32 @@ fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize
     for _i in 0..key_len {
         key.push(okm.pop_front().unwrap());
     }
-    let mut iv = [0u8; 16];
-    for i in 0..iv_len {
-        iv[i] = okm.pop_front().unwrap();
+    let mut iv: Vec<u8> = Vec::new();
+    for _i in 0..iv_len {
+        iv.push(okm.pop_front().unwrap());
     }
-    return (key, iv);
+    (key, iv)
 }
 
 pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &str)-> Vec<u8> {
     let a = check_algorithm(algorithm).unwrap();
 
+    macro_rules! make_key_and_iv {
+        ($cipher:tt) => {
+            {
+                let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
+                let iv_a = [0u8; $cipher::IV_LEN].map(|_| *iv.iter().next().unwrap());
+                (key, iv_a)
+            }
+        }
+    }
     macro_rules! cbc_encrypt {
         ($cipher:tt) => {
             {
                 let mut ciphertext = pkcs7::encrypt(data.as_bytes().to_vec(), $cipher::BLOCK_LEN);
-                let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
+                let (key, iv) = make_key_and_iv!($cipher);
                 $cipher::new(&key).encrypt(&iv, &mut ciphertext);
-                return ciphertext.to_vec();
+                ciphertext.to_vec()
             }
         }
     }
@@ -87,9 +92,9 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
         ($cipher:tt) => {
             {
                 let mut ciphertext = pkcs7::encrypt(data.as_bytes().to_vec(), $cipher::BLOCK_LEN);
-                let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
+                let (key, iv) = make_key_and_iv!($cipher);
                 $cipher::new(&key).encrypt_slice(&iv, &mut ciphertext);
-                return ciphertext.to_vec();
+                ciphertext.to_vec()
             }
         }
     }
@@ -97,9 +102,9 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
         ($cipher:tt) => {
             {
                 let mut ciphertext = pkcs7::encrypt(data.as_bytes().to_vec(), $cipher::BLOCK_LEN);
-                let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
+                let (key, iv) = make_key_and_iv!($cipher);
                 $cipher::new(&key).encrypt(&iv, &mut ciphertext);
-                return ciphertext.to_vec();
+                ciphertext.to_vec()
             }
         }
     }
@@ -107,9 +112,9 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
         ($cipher:tt) => {
             {
                 let mut ciphertext = pkcs7::encrypt(data.as_bytes().to_vec(), $cipher::BLOCK_LEN);
-                let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
+                let (key, iv) = make_key_and_iv!($cipher);
                 $cipher::new(&key).encrypt_slice(&iv, &mut ciphertext);
-                return ciphertext.to_vec();
+                ciphertext.to_vec()
             }
         }
     }
@@ -125,7 +130,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             "camellia192" => cbc_encrypt!(Camellia192Cbc),
             "camellia256" => cbc_encrypt!(Camellia256Cbc),
             "sm4" =>         cbc_encrypt!(Sm4Cbc),
-            _ => return vec![0u8]
+            _ => vec![0u8]
         },
         "cfb1" => match a[1] {
             "aes128" =>      cfb_encrypt!(Aes128Cfb1),
@@ -138,7 +143,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             "camellia192" => cfb_encrypt!(Camellia192Cfb1),
             "camellia256" => cfb_encrypt!(Camellia256Cfb1),
             "sm4" =>         cfb_encrypt!(Sm4Cfb1),
-            _ => return vec![0u8]
+            _ => vec![0u8]
         },
         "cfb8" => match a[1] {
             "aes128" =>      cfb_encrypt!(Aes128Cfb8),
@@ -151,7 +156,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             "camellia192" => cfb_encrypt!(Camellia192Cfb8),
             "camellia256" => cfb_encrypt!(Camellia256Cfb8),
             "sm4" =>         cfb_encrypt!(Sm4Cfb8),
-            _ => return vec![0u8]
+            _ => vec![0u8]
         },
         "cfb64" => match a[1] {
             "aes128" =>      cfb64_encrypt!(Aes128Cfb64),
@@ -164,7 +169,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             "camellia192" => cfb64_encrypt!(Camellia192Cfb64),
             "camellia256" => cfb64_encrypt!(Camellia256Cfb64),
             "sm4" =>         cfb64_encrypt!(Sm4Cfb64),
-            _ => return vec![0u8]
+            _ => vec![0u8]
         },
         "cfb128" => match a[1] {
             "aes128" =>      cfb_encrypt!(Aes128Cfb128),
@@ -177,7 +182,7 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             "camellia192" => cfb_encrypt!(Camellia192Cfb128),
             "camellia256" => cfb_encrypt!(Camellia256Cfb128),
             "sm4" =>         cfb_encrypt!(Sm4Cfb128),
-            _ => return vec![0u8]
+            _ => vec![0u8]
         },
         "ofb" => match a[1] {
             "aes128" =>      ofb_encrypt!(Aes128Ofb),
@@ -190,22 +195,31 @@ pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &
             "camellia192" => ofb_encrypt!(Camellia192Ofb),
             "camellia256" => ofb_encrypt!(Camellia256Ofb),
             "sm4" =>         ofb_encrypt!(Sm4Ofb),
-            _ => return vec![0u8]
+            _ => vec![0u8]
         }
-        _ => return vec![0u8]
+        _ => vec![0u8]
     }
 }
 
 pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: Vec<u8>)-> String {
     let a = check_algorithm(algorithm).unwrap();
 
+    macro_rules! make_key_and_iv {
+        ($cipher:tt) => {
+            {
+                let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
+                let iv_a = [0u8; $cipher::IV_LEN].map(|_| *iv.iter().next().unwrap());
+                (key, iv_a)
+            }
+        }
+    }
     macro_rules! cbc_decrypt {
         ($cipher:tt) => {
             {
                 let mut ciphertext = data.clone();
-                let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
+                let (key, iv) = make_key_and_iv!($cipher);
                 $cipher::new(&key).decrypt(&iv, &mut ciphertext);
-                return String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap();
+                String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap()
             }
         }
     }
@@ -213,9 +227,9 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
         ($cipher:tt) => {
             {
                 let mut ciphertext = data.clone();
-                let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
+                let (key, iv) = make_key_and_iv!($cipher);
                 $cipher::new(&key).decrypt_slice(&iv, &mut ciphertext);
-                return String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap();
+                String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap()
             }
         }
     }
@@ -223,9 +237,9 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
         ($cipher:tt) => {
             {
                 let mut ciphertext = data.clone();
-                let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
+                let (key, iv) = make_key_and_iv!($cipher);
                 $cipher::new(&key).decrypt(&iv, &mut ciphertext);
-                return String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap();
+                String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap()
             }
         }
     }
@@ -233,9 +247,9 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
         ($cipher:tt) => {
             {
                 let mut ciphertext = data.clone();
-                let (key, iv) = hkdf(a[0], password, salt, info, $cipher::KEY_LEN, $cipher::IV_LEN);
+                let (key, iv) = make_key_and_iv!($cipher);
                 $cipher::new(&key).decrypt_slice(&iv, &mut ciphertext);
-                return String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap();
+                String::from_utf8(pkcs7::decrypt(ciphertext.to_vec())).unwrap()
             }
         }
     }
@@ -251,7 +265,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             "camellia192" => cbc_decrypt!(Camellia192Cbc),
             "camellia256" => cbc_decrypt!(Camellia256Cbc),
             "sm4" =>         cbc_decrypt!(Sm4Cbc),
-            _ => return "".to_string()
+            _ => "".to_string()
         },
         "cfb1" => match a[1] {
             "aes128" =>      cfb_decrypt!(Aes128Cfb1),
@@ -264,7 +278,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             "camellia192" => cfb_decrypt!(Camellia192Cfb1),
             "camellia256" => cfb_decrypt!(Camellia256Cfb1),
             "sm4" =>         cfb_decrypt!(Sm4Cfb1),
-            _ => return "".to_string()
+            _ => "".to_string()
         },
         "cfb8" => match a[1] {
             "aes128" =>      cfb_decrypt!(Aes128Cfb8),
@@ -277,7 +291,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             "camellia192" => cfb_decrypt!(Camellia192Cfb8),
             "camellia256" => cfb_decrypt!(Camellia256Cfb8),
             "sm4" =>         cfb_decrypt!(Sm4Cfb8),
-            _ => return "".to_string()
+            _ => "".to_string()
         },
         "cfb64" => match a[1] {
             "aes128" =>      cfb64_decrypt!(Aes128Cfb64),
@@ -290,7 +304,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             "camellia192" => cfb64_decrypt!(Camellia192Cfb64),
             "camellia256" => cfb64_decrypt!(Camellia256Cfb64),
             "sm4" =>         cfb64_decrypt!(Sm4Cfb64),
-            _ => return "".to_string()
+            _ => "".to_string()
         },
         "cfb128" => match a[1] {
             "aes128" =>      cfb_decrypt!(Aes128Cfb128),
@@ -303,7 +317,7 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             "camellia192" => cfb_decrypt!(Camellia192Cfb128),
             "camellia256" => cfb_decrypt!(Camellia256Cfb128),
             "sm4" =>         cfb_decrypt!(Sm4Cfb128),
-            _ => return "".to_string()
+            _ => "".to_string()
         },
         "ofb" => match a[1] {
             "aes128" =>      ofb_decrypt!(Aes128Ofb),
@@ -316,8 +330,8 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
             "camellia192" => ofb_decrypt!(Camellia192Ofb),
             "camellia256" => ofb_decrypt!(Camellia256Ofb),
             "sm4" =>         ofb_decrypt!(Sm4Ofb),
-            _ => return "".to_string()
+            _ => "".to_string()
         }
-        _ => return "".to_string()
+        _ => "".to_string()
     }
 }
