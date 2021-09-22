@@ -16,11 +16,10 @@ jobs:
       - name: add release tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.event.pull_request.title }}
           REPO: ${{ github.repository }}
           COMMIT: ${{ github.sha }}
         run: |
           curl -s -X POST "https://api.github.com/repos/${REPO}/git/refs" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token $GITHUB_TOKEN" \
-            -d '{"ref":"refs/tags/${TAG}","sha":"${COMMIT}"}'
+            -d '{"ref":"refs/tags/release-$(date +\'%Y%m%d-%H%m\')","sha":"${COMMIT}"}'
