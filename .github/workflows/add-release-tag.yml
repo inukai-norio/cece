@@ -17,4 +17,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
+          COMMIT: ${{ github.sha }}
         run: sh ${GITHUB_WORKSPACE}/github/scripts/add-tag.sh
