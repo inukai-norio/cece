@@ -1,0 +1,10 @@
+debug/
+target/
+.github/
+
+docker/
+
+Cargo.lock
+
+testsfiles/
+test.sh
