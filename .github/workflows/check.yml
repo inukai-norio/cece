@@ -98,6 +98,7 @@ jobs:
           path: release_upload_url.txt
 
   publish-release:
+    name: publish ${{ matrix.target }}
     needs: [make-matrix, build, create-release]
     runs-on: ubuntu-20.04
     strategy:
