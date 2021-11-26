@@ -18,6 +18,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: install g++
+        if: ${{ matrix.target == 'aarch64-unknown-linux-musl' }}
+        run: sudo apt-get install g++-aarch64-linux-gnu
       - name: Setup rust
         uses: actions-rs/toolchain@v1
         with:
