@@ -33,10 +33,10 @@ jobs:
     outputs:
       target: ${{ matrix.target }}
     steps:
-      run: echo a
+      - run: echo a
 
   publish-release:
     needs: [build]
     runs-on: ubuntu-20.04
     steps:
-      run: echo ${{ needs.build.outputs.target}}
+      - run: echo ${{ needs.build.outputs.target}}
