@@ -7,7 +7,9 @@ on:
     branches: [ master, dev/* ]
 
 jobs:
-  build-linux:
+  build:
+    env:
+      name: cece
     strategy:
       matrix:
         include:
@@ -44,3 +46,66 @@ jobs:
           command: build
           args: --target ${{ matrix.target }} --release
       - run: ls -l target/${{ matrix.target }}/release/
+      - name: Package for linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          zip --junk-paths ${{ env.name }}-${{ matrix.target }} target/${{ matrix.target }}/release/${{ env.name }}
+
+      - name: Package for macOS
+        if: matrix.os == 'macos-latest' || matrix.os == 'macos-11'
+        run: |
+          zip --junk-paths ${{ env.name }}-${{ matrix.target }} target/${{ matrix.target }}/release/${{ env.name }}
+
+      - name: Package for windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          powershell Compress-Archive -Path target/${{ matrix.target }}/release/${{ env.name }}.exe -DestinationPath ${{ env.name }}-${{ matrix.target }}.zip
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-${{ matrix.target }}
+          path: ${{ env.name }}-${{matrix.target}}.zip
+
+  create-release:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: true
+          prerelease: true
+      - run: |
+          echo '${{ steps.create-release.outputs.upload_url }}' > release_upload_url.txt
+      - uses: actions/upload-artifact@v1
+        with:
+          name: create-release
+          path: release_upload_url.txt
+
+  publish-release:
+    needs: [create-release]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/download-artifact@v1
+        with:
+          name: create-release
+      - id: upload-url
+        run: |
+          echo "::set-output name=url::$(cat create-release/release_upload_url.txt)"
+      - uses: actions/download-artifact@v1
+        with:
+          name: build-${{ matrix.target }}
+      - name: check current directory
+        run: |
+          ls -a ./build-${{ matrix.target }}
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.upload-url.outputs.url }}
+          asset_path: ./build-${{ matrix.target }}/${{ env.name }}-${{ matrix.target }}.zip
+          asset_name: ${{ env.name }}-${{matrix.target}}.zip
+          asset_content_type: application/zip
