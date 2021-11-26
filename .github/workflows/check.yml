@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     name: build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
     env:
       name: cece
     strategy:
@@ -28,7 +29,6 @@ jobs:
             os: windows-latest
           - target: i686-pc-windows-msvc
             os: windows-latest
-    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
