@@ -10,7 +10,7 @@ env:
   name: cece
 
 jobs:
-　make-matrix:
+  make-matrix:
     runs-on: ubuntu-latest
     outputs:
       include-matrix: ${{ steps.matrix.outputs.value }}
