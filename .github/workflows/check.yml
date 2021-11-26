@@ -65,7 +65,6 @@ jobs:
           path: ${{ env.name }}-${{matrix.target}}.zip
 
   create-release:
-    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - id: create-release
@@ -85,7 +84,7 @@ jobs:
           path: release_upload_url.txt
 
   publish-release:
-    needs: [create-release]
+    needs: [build, create-release]
     runs-on: ubuntu-20.04
     strategy:
       matrix:
