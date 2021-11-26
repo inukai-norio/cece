@@ -29,4 +29,4 @@ jobs:
         with:
           command: build
           args: --target ${{ matrix.target }} --release
-      - run: ls -l target/release/
+      - run: ls -l target/${{ matrix.target }}/release/
