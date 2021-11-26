@@ -1,9 +1,9 @@
+name: build and release stable version
+
 on:
   push:
     tags:
       - 'release-*'
-
-name: build and release stable version
 
 env:
   name: cece
