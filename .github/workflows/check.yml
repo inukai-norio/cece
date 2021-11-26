@@ -12,9 +12,9 @@ jobs:
     strategy:
       matrix:
         target: 
-          - x86_64
-          - aarch64
-          - i686
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+          - i686-unknown-linux-musl
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -22,11 +22,11 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-          target: ${{ matrix.target }}-unknown-linux-musl
+          target: ${{ matrix.target }}
           override: true
       - name: Release build
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: -C linker=${{ matrix.target }}-linux-gnu-gcc --target ${{ matrix.target }}-unknown-linux-musl --release
-      - run: ls -l target/${{ matrix.target }}-unknown-linux-musl/release/
+          args: --target ${{ matrix.target }} --release
+      - run: ls -l target/${{ matrix.target }}/release/
