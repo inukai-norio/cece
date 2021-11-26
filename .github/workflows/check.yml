@@ -22,9 +22,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: install g++
+      - name: install g++-aarch64-linux-gnu
         if: ${{ matrix.target == 'aarch64-unknown-linux-musl' }}
         run: sudo apt-get install g++-aarch64-linux-gnu
+      - name: install mingw-w64
+        if: ${{ matrix.target == 'x86_64-pc-windows-gnu' || matrix.target == 'i686-pc-windows-gnu' }}
+        run: sudo apt-get install mingw-w64
       - name: Setup rust
         uses: actions-rs/toolchain@v1
         with:
