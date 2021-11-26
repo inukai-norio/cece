@@ -78,6 +78,7 @@ jobs:
           path: ${{ env.name }}-${{matrix.target}}.zip
 
   create-release:
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - id: create-release
