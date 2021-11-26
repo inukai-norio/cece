@@ -13,7 +13,7 @@ jobs:
       matrix:
         target: 
           - x86_64-unknown-linux-musl
-          - aarch64-unknown-linux-musl
+          #- aarch64-unknown-linux-musl
           - i686-unknown-linux-musl
     steps:
       - name: Checkout code
