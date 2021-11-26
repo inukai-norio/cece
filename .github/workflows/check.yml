@@ -32,7 +32,7 @@ jobs:
       - name: make target-list
         id: target-list
         run: |
-          D=$(echo '${{ steps.include-matrix.outputs.value }}' | jq 'map(.target)')
+          D=$(echo '${{ steps.include-matrix.outputs.value }}' | jq -c 'map(.target)')
           echo "::set-output name=value::${D}"
   build:
     name: build ${{ matrix.target }}
