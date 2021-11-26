@@ -32,6 +32,8 @@ jobs:
             os: windows-latest
     outputs:
       target: ${{ matrix.target }}
+    steps:
+      run: echo a
 
   publish-release:
     needs: [build]
