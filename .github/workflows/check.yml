@@ -31,7 +31,7 @@ jobs:
           - target: i686-pc-windows-msvc
             os: windows-latest
     outputs:
-      target: ${{ matrix.target }}
+      target: ${{ matrix }}
     steps:
       - run: echo a
 
