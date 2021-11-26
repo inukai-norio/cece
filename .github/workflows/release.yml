@@ -1,38 +1,84 @@
+name: build and release stable version
+
 on:
   push:
     tags:
       - 'release-*'
 
-name: build and release stable version
+env:
+  name: cece
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-20.04
+  make-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      include-matrix: ${{ steps.include-matrix.outputs.value }}
+      target-list: ${{ steps.target-list.outputs.value }}
+    steps:
+      - name: make include-matrix
+        id: include-matrix
+        run: |
+          D=$(echo '[
+            { "target": "x86_64-unknown-linux-musl",  "os": "ubuntu-latest" },
+            { "target": "aarch64-unknown-linux-musl", "os": "ubuntu-latest" },
+            { "target": "i686-unknown-linux-musl",    "os": "ubuntu-latest" },
+            { "target": "x86_64-apple-darwin",        "os": "macos-latest" },
+            { "target": "aarch64-apple-darwin",       "os": "macos-11" },
+            { "target": "x86_64-pc-windows-msvc",     "os": "windows-latest" },
+            { "target": "i686-pc-windows-msvc",       "os": "windows-latest" }
+          ]' | jq -c .)
+          echo "::set-output name=value::${D}"
+      - name: make target-list
+        id: target-list
+        run: |
+          D=$(echo '${{ steps.include-matrix.outputs.value }}' | jq -c 'map(.target)')
+          echo "::set-output name=value::${D}"
+  build:
+    name: build ${{ matrix.target }}
+    needs: [make-matrix]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.make-matrix.outputs.include-matrix) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: install g++-aarch64-linux-gnu
+        if: ${{ matrix.target == 'aarch64-unknown-linux-musl' }}
+        run: sudo apt-get install g++-aarch64-linux-gnu
       - name: Setup rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          target: ${{ matrix.target }}
           override: true
       - name: Release build
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release
-      - name: Zip binary for Linux(x86_64)
+          args: --target ${{ matrix.target }} --release
+      - name: Package for linux
+        if: runner.os == 'Linux'
         run: |
-          zip cece-linux-x86_64 target/release/cece
-      - name: Store zip
-        uses: actions/upload-artifact@v2
+          zip --junk-paths ${{ env.name }}-${{ matrix.target }} target/${{ matrix.target }}/release/${{ env.name }}
+
+      - name: Package for macOS
+        if: runner.os == 'macOS'
+        run: |
+          zip --junk-paths ${{ env.name }}-${{ matrix.target }} target/${{ matrix.target }}/release/${{ env.name }}
+
+      - name: Package for windows
+        if: runner.os == 'Windows'
+        run: |
+          powershell Compress-Archive -Path target/${{ matrix.target }}/release/${{ env.name }}.exe -DestinationPath ${{ env.name }}-${{ matrix.target }}.zip
+      - uses: actions/upload-artifact@v2
         with:
-          name: build-linux
-          path: cece-linux-x86_64.zip
+          name: build-${{ matrix.target }}
+          path: ${{ env.name }}-${{matrix.target}}.zip
 
   create-release:
-    needs: [build-linux]
-    runs-on: ubuntu-20.04
+    needs: [build]
+    runs-on: ubuntu-latest
     steps:
       - id: create-release
         uses: actions/create-release@v1
@@ -51,8 +97,12 @@ jobs:
           path: release_upload_url.txt
 
   publish-release:
-    needs: [create-release]
-    runs-on: ubuntu-20.04
+    name: publish ${{ matrix.target }}
+    needs: [make-matrix, build, create-release]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: ${{ fromJson(needs.make-matrix.outputs.target-list) }}
     steps:
       - uses: actions/download-artifact@v1
         with:
@@ -62,15 +112,15 @@ jobs:
           echo "::set-output name=url::$(cat create-release/release_upload_url.txt)"
       - uses: actions/download-artifact@v1
         with:
-          name: build-linux
+          name: build-${{ matrix.target }}
       - name: check current directory
         run: |
-          ls -a ./build-linux
+          ls -a ./build-${{ matrix.target }}
       - uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.upload-url.outputs.url }}
-          asset_path: ./build-linux/cece-linux-x86_64.zip
-          asset_name: cece-linux-x86_64.zip
+          asset_path: ./build-${{ matrix.target }}/${{ env.name }}-${{ matrix.target }}.zip
+          asset_name: ${{ env.name }}-${{matrix.target}}.zip
           asset_content_type: application/zip
