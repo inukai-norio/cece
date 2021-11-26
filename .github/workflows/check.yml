@@ -28,5 +28,5 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release
+          args: --target ${{ matrix.target }} --release
       - run: ls -l target/release/cece
