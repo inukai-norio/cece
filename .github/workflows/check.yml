@@ -11,7 +11,10 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        target: [x86_64-unknown-linux-musl, aarch64-unknown-linux-musl, i686-unknown-linux-musl]
+        target: 
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+          - i686-unknown-linux-musl
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
