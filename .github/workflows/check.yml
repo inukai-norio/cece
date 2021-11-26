@@ -40,7 +40,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        include: ${{fromJson(needs.make-matrix.outputs.include-matrix)}}
+        include: ${{ fromJson(needs.make-matrix.outputs.include-matrix) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -102,7 +102,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        target: ${{fromJson(needs.make-matrix.outputs.target-list)}}
+        target: ${{ fromJson(needs.make-matrix.outputs.target-list) }}
     steps:
       - uses: actions/download-artifact@v1
         with:
