@@ -100,7 +100,7 @@ jobs:
   publish-release:
     name: publish ${{ matrix.target }}
     needs: [make-matrix, build, create-release]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         target: ${{ fromJson(needs.make-matrix.outputs.target-list) }}
