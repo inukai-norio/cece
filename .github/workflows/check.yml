@@ -6,12 +6,13 @@ on:
   pull_request:
     branches: [ master, dev/* ]
 
+env:
+  name: cece
+
 jobs:
   build:
     name: build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
-    env:
-      name: cece
     strategy:
       matrix:
         include:
