@@ -16,3 +16,4 @@ getopts = "0.2"
 
 [dev-dependencies]
 clippy = "0.0.302"
+cargo-edit = "0.8.0"
