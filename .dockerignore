@@ -1,0 +1,11 @@
+debug/
+target/
+.github/
+
+docker/
+!docker/docker-cece-entrypoint
+
+Cargo.lock
+
+testsfiles/
+test.sh
