@@ -6,6 +6,6 @@ RUN cargo +nightly install --path .
 
 FROM alpine:latest
 COPY --from=builder /usr/local/cargo/bin/cece /usr/local/bin/cece
-COPY docker-shell/docker-cece-entrypoint /usr/local/bin/docker-cece-entrypoint
+COPY docker/docker-cece-entrypoint /usr/local/bin/docker-cece-entrypoint
 ENTRYPOINT ["docker-cece-entrypoint"]
 CMD ["cece", "-h"]

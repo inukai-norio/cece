@@ -3,6 +3,7 @@ target/
 .github/
 
 docker/
+!docker/docker-cece-entrypoint
 
 Cargo.lock
 
