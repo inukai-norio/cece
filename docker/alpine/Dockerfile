@@ -1,4 +1,4 @@
-FROM rust:alpine AS builder
+FROM rust:1-alpine AS builder
 WORKDIR /usr/src/cece
 RUN rustup toolchain install nightly
 COPY . .

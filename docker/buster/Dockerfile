@@ -1,4 +1,4 @@
-FROM rust:buster AS builder
+FROM rust:1-buster-slim AS builder
 WORKDIR /usr/src/cece
 RUN rustup toolchain install nightly
 COPY . .
