@@ -82,9 +82,6 @@ jobs:
     name: publish ${{ matrix.target }}
     needs: [make-matrix, build]
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target: ${{ fromJson(needs.make-matrix.outputs.target-list) }}
     steps:
       - uses: actions/download-artifact@v1
         with:
