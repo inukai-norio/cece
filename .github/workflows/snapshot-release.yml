@@ -1,6 +1,9 @@
 name: build and release snapshot version
 
 on:
+  push:
+    branches:
+      - feature/gh-release
   pull_request:
     branches:
       - master
@@ -101,5 +104,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          draft: false
+          draft: true
           files: ./build/*
