@@ -74,32 +74,12 @@ jobs:
           powershell Compress-Archive -Path target/${{ matrix.target }}/release/${{ env.name }}.exe -DestinationPath ${{ env.name }}-${{ matrix.target }}.zip
       - uses: actions/upload-artifact@v2
         with:
-          name: build-${{ matrix.target }}
+          name: build
           path: ${{ env.name }}-${{matrix.target}}.zip
-
-  create-release:
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.sha }}
-          release_name: Release ${{ github.sha }}
-          draft: false
-          prerelease: true
-      - run: |
-          echo '${{ steps.create-release.outputs.upload_url }}' > release_upload_url.txt
-      - uses: actions/upload-artifact@v1
-        with:
-          name: create-release
-          path: release_upload_url.txt
 
   publish-release:
     name: publish ${{ matrix.target }}
-    needs: [make-matrix, build, create-release]
+    needs: [make-matrix, build]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -117,11 +97,9 @@ jobs:
       - name: check current directory
         run: |
           ls -a ./build-${{ matrix.target }}
-      - uses: actions/upload-release-asset@v1
+      - uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.upload-url.outputs.url }}
-          asset_path: ./build-${{ matrix.target }}/${{ env.name }}-${{ matrix.target }}.zip
-          asset_name: ${{ env.name }}-${{matrix.target}}.zip
-          asset_content_type: application/zip
+          draft: false
+          files: ./build/*
