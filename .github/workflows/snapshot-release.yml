@@ -86,9 +86,6 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: build
-      - name: check current directory
-        run: |
-          ls -a ./build-${{ matrix.target }}
       - uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
