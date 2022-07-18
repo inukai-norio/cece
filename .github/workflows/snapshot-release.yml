@@ -85,13 +85,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v1
         with:
-          name: create-release
-      - id: upload-url
-        run: |
-          echo "::set-output name=url::$(cat create-release/release_upload_url.txt)"
-      - uses: actions/download-artifact@v1
-        with:
-          name: build-${{ matrix.target }}
+          name: build
       - name: check current directory
         run: |
           ls -a ./build-${{ matrix.target }}
