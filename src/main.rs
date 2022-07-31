@@ -16,28 +16,35 @@ fn is_comment(l: &str) -> bool {
 }
 
 fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
-    let mut csp_rng = ChaCha20Rng::from_entropy();
     let mut file = File::create(outfile).unwrap();
     for result in BufReader::new(File::open(infile).unwrap()).lines() {
         let res = result.unwrap();
 
-        let mut data = [0u8; 32];
-        csp_rng.fill_bytes(&mut data);
-
-        let salt = &base64::encode(&data[..]);
         if is_comment(&res) {
             let _ = writeln!(file, "{}", res);
             continue;
         }
-        let caps = Regex::new(r"^([^=]+)=(.*)$").unwrap().captures(&res).unwrap();
-        
-        let b = crypto::encrypt(algo, passwd, salt, info, caps.get(2).unwrap().as_str());
-        let c = base64::encode(&b[..]);
 
-        let d = format!("{}={}:{}:{}:{}", caps.get(1).unwrap().as_str(), algo, salt, info, c);
-        let _ = writeln!(file, "{}", d);
+        let _ = writeln!(file, "{}", encode_line(&res, passwd, algo, info));
     }
     file.flush().unwrap();
+}
+
+fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
+    let mut csp_rng = ChaCha20Rng::from_entropy();
+
+    let mut data = [0u8; 32];
+    csp_rng.fill_bytes(&mut data);
+
+    let salt = &base64::encode(&data[..]);
+    let caps = Regex::new(r"^([^=]+)=(.*)$").unwrap().captures(&input).unwrap();
+
+    let encrypted_string = crypto::encrypt(algo, passwd, salt, info, caps.get(2).unwrap().as_str());
+    let encoded_string = base64::encode(&encrypted_string[..]);
+
+    let formatted_string = format!("{}={}:{}:{}:{}", caps.get(1).unwrap().as_str(), algo, salt, info, encoded_string);
+
+    return formatted_string;
 }
 
 fn decode(infile: &str, outfile: &str, passwd: &str) {
