@@ -17,6 +17,8 @@ fn is_comment(l: &str) -> bool {
 
 fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
     let mut file = File::create(outfile).unwrap();
+    let mut csp_rng = ChaCha20Rng::from_entropy();
+
     for result in BufReader::new(File::open(infile).unwrap()).lines() {
         let res = result.unwrap();
 
@@ -25,14 +27,12 @@ fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
             continue;
         }
 
-        let _ = writeln!(file, "{}", encode_line(&res, passwd, algo, info));
+        let _ = writeln!(file, "{}", encode_line(&res, passwd, algo, info, &mut csp_rng));
     }
     file.flush().unwrap();
 }
 
-fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
-    let mut csp_rng = ChaCha20Rng::from_entropy();
-
+fn encode_line(input: &str, passwd: &str, algo: &str, info: &str, csp_rng: &mut ChaCha20Rng) -> String{
     let mut data = [0u8; 32];
     csp_rng.fill_bytes(&mut data);
 
