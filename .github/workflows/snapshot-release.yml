@@ -78,9 +78,24 @@ jobs:
           name: build
           path: ${{ env.name }}-${{matrix.target}}.zip
 
+  find-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tagger.outputs.tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Find Tag
+        id: tagger
+        uses: jimschubert/query-tag-action@v2
+        with:
+          include: 'v*'
+          exclude: '*-rc*'
+          commit-ish: 'HEAD~'
+
   publish-release:
     name: publish ${{ matrix.target }}
-    needs: [make-matrix, build]
+    needs: [make-matrix, build, find-tag]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v1
@@ -92,5 +107,5 @@ jobs:
         with:
           draft: true
           prerelease: true
-          name: Release ${{ github.ref }}
+          name: Snapshot Release ${{ needs.find-tag.outputs.tag }}
           files: ./build/*
