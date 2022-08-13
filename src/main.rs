@@ -8,6 +8,13 @@ use std::io::{BufRead, BufReader, Write};
 use rand::prelude::*;
 use rand_chacha::ChaCha20Rng;
 use regex::Regex;
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
+
+static CSP_RNG: Lazy<Mutex<ChaCha20Rng>> = Lazy::new(|| {
+    let csp_rng = ChaCha20Rng::from_entropy();
+    Mutex::new(csp_rng)
+});
 
 mod crypto;
 
@@ -16,45 +23,60 @@ fn is_comment(l: &str) -> bool {
 }
 
 fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
-    let mut csp_rng = ChaCha20Rng::from_entropy();
     let mut file = File::create(outfile).unwrap();
+
     for result in BufReader::new(File::open(infile).unwrap()).lines() {
         let res = result.unwrap();
 
-        let mut data = [0u8; 32];
-        csp_rng.fill_bytes(&mut data);
-
-        let salt = &base64::encode(&data[..]);
         if is_comment(&res) {
             let _ = writeln!(file, "{}", res);
             continue;
         }
-        let caps = Regex::new(r"^([^=]+)=(.*)$").unwrap().captures(&res).unwrap();
-        
-        let b = crypto::encrypt(algo, passwd, salt, info, caps.get(2).unwrap().as_str());
-        let c = base64::encode(&b[..]);
 
-        let d = format!("{}={}:{}:{}:{}", caps.get(1).unwrap().as_str(), algo, salt, info, c);
-        let _ = writeln!(file, "{}", d);
+        let _ = writeln!(file, "{}", encode_line(&res, passwd, algo, info));
     }
     file.flush().unwrap();
+}
+
+fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
+    let mut data = [0u8; 32];
+    CSP_RNG.lock().unwrap().fill_bytes(&mut data);
+
+    let salt = &base64::encode(&data[..]);
+    let caps = Regex::new(r"^([^=]+)=(.*)$").unwrap().captures(&input).unwrap();
+
+    let encrypted_string = crypto::encrypt(algo, passwd, salt, info, caps.get(2).unwrap().as_str());
+    let encoded_string = base64::encode(&encrypted_string[..]);
+
+    let formatted_string = format!("{}={}:{}:{}:{}", caps.get(1).unwrap().as_str(), algo, salt, info, encoded_string);
+
+    return formatted_string;
 }
 
 fn decode(infile: &str, outfile: &str, passwd: &str) {
     let mut file = File::create(outfile).unwrap();
     for result in BufReader::new(File::open(infile).unwrap()).lines() {
         let res = result.unwrap();
+
         if is_comment(&res) {
             let _ = writeln!(file, "{}", res);
             continue;
         }
-        let caps = Regex::new(r"^([^=]+)=([^:]+):([0-9A-Za-z+/=]+):([^:]*):([0-9A-Za-z+/=]+)$").unwrap().captures(&res).unwrap();
-        let y = &base64::decode(caps.get(5).unwrap().as_str()).unwrap();
-        let z = crypto::decrypt(caps.get(2).unwrap().as_str(), passwd, caps.get(3).unwrap().as_str(), caps.get(4).unwrap().as_str(), y.to_vec());
-        let zz = format!("{}={}", caps.get(1).unwrap().as_str(), z);
-        let _ = writeln!(file, "{}", zz);
+
+        let _ = writeln!(file, "{}", decode_line(&res, &passwd));
     }
     file.flush().unwrap();
+}
+
+fn decode_line(input: &str, passwd: &str) -> String{
+        let caps = Regex::new(r"^([^=]+)=([^:]+):([0-9A-Za-z+/=]+):([^:]*):([0-9A-Za-z+/=]+)$").unwrap().captures(&input).unwrap();
+
+        let decoded_string = &base64::decode(caps.get(5).unwrap().as_str()).unwrap();
+        let decrypted_string = crypto::decrypt(caps.get(2).unwrap().as_str(), passwd, caps.get(3).unwrap().as_str(), caps.get(4).unwrap().as_str(), decoded_string.to_vec());
+
+        let formatted_string = format!("{}={}", caps.get(1).unwrap().as_str(), decrypted_string);
+
+        return formatted_string;
 }
 
 fn print_usage(exe_name: &str, opts: &Options) {
