@@ -8,6 +8,13 @@ use std::io::{BufRead, BufReader, Write};
 use rand::prelude::*;
 use rand_chacha::ChaCha20Rng;
 use regex::Regex;
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
+
+static CSP_RNG: Lazy<Mutex<ChaCha20Rng>> = Lazy::new(|| {
+    let csp_rng = ChaCha20Rng::from_entropy();
+    Mutex::new(csp_rng)
+});
 
 mod crypto;
 
@@ -17,7 +24,6 @@ fn is_comment(l: &str) -> bool {
 
 fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
     let mut file = File::create(outfile).unwrap();
-    let mut csp_rng = ChaCha20Rng::from_entropy();
 
     for result in BufReader::new(File::open(infile).unwrap()).lines() {
         let res = result.unwrap();
@@ -27,14 +33,14 @@ fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
             continue;
         }
 
-        let _ = writeln!(file, "{}", encode_line(&res, passwd, algo, info, &mut csp_rng));
+        let _ = writeln!(file, "{}", encode_line(&res, passwd, algo, info));
     }
     file.flush().unwrap();
 }
 
-fn encode_line(input: &str, passwd: &str, algo: &str, info: &str, csp_rng: &mut ChaCha20Rng) -> String{
+fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
     let mut data = [0u8; 32];
-    csp_rng.fill_bytes(&mut data);
+    CSP_RNG.lock().unwrap().fill_bytes(&mut data);
 
     let salt = &base64::encode(&data[..]);
     let caps = Regex::new(r"^([^=]+)=(.*)$").unwrap().captures(&input).unwrap();
