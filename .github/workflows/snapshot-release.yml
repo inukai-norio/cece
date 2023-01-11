@@ -1,0 +1,112 @@
+name: build and release snapshot version
+
+on:
+  push:
+    branches:
+      - feature/gh-release
+  pull_request:
+    branches:
+      - master
+    types: [closed]
+
+env:
+  name: cece
+
+jobs:
+  make-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      include-matrix: ${{ steps.include-matrix.outputs.value }}
+      target-list: ${{ steps.target-list.outputs.value }}
+    steps:
+      - name: make include-matrix
+        id: include-matrix
+        run: |
+          D=$(echo '[
+            { "target": "x86_64-unknown-linux-musl",  "os": "ubuntu-latest" },
+            { "target": "i686-unknown-linux-musl",    "os": "ubuntu-latest" },
+            { "target": "x86_64-apple-darwin",        "os": "macos-latest" },
+            { "target": "x86_64-pc-windows-msvc",     "os": "windows-latest" },
+            { "target": "i686-pc-windows-msvc",       "os": "windows-latest" }
+          ]' | jq -c .)
+          echo "::set-output name=value::${D}"
+      - name: make target-list
+        id: target-list
+        run: |
+          D=$(echo '${{ steps.include-matrix.outputs.value }}' | jq -c 'map(.target)')
+          echo "::set-output name=value::${D}"
+  build:
+    name: build ${{ matrix.target }}
+    needs: [make-matrix]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.make-matrix.outputs.include-matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: install g++-aarch64-linux-gnu
+        if: ${{ matrix.target == 'aarch64-unknown-linux-musl' }}
+        run: sudo apt-get install g++-aarch64-linux-gnu
+      - name: Setup rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: ${{ matrix.target }}
+          override: true
+      - name: Release build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --target ${{ matrix.target }} --release
+      - name: Package for linux
+        if: runner.os == 'Linux'
+        run: |
+          zip --junk-paths ${{ env.name }}-${{ matrix.target }} target/${{ matrix.target }}/release/${{ env.name }}
+
+      - name: Package for macOS
+        if: runner.os == 'macOS'
+        run: |
+          zip --junk-paths ${{ env.name }}-${{ matrix.target }} target/${{ matrix.target }}/release/${{ env.name }}
+
+      - name: Package for windows
+        if: runner.os == 'Windows'
+        run: |
+          powershell Compress-Archive -Path target/${{ matrix.target }}/release/${{ env.name }}.exe -DestinationPath ${{ env.name }}-${{ matrix.target }}.zip
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: ${{ env.name }}-${{matrix.target}}.zip
+
+  find-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tagger.outputs.tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Find Tag
+        id: tagger
+        uses: jimschubert/query-tag-action@v2
+        with:
+          include: 'v*'
+          exclude: '*-rc*'
+          commit-ish: 'HEAD'
+          abbrev: false
+
+  publish-release:
+    name: publish ${{ matrix.target }}
+    needs: [make-matrix, build, find-tag]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v1
+        with:
+          name: build
+      - uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: true
+          prerelease: true
+          name: Snapshot Release ${{ needs.find-tag.outputs.tag }}
+          files: ./build/*
