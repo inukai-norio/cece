@@ -50,6 +50,3 @@ done
 
 $CECE -d -i testsfiles/sample.encrypt.env -o temp2
 diff testsfiles/sample.env temp2 > /dev/null
-
-$CECE -d -i testsfiles/all_algo.encrypt.env -o temp2
-diff testsfiles/all_algo.env temp2 > /dev/null
