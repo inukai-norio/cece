@@ -10,11 +10,11 @@ edition = "2018"
 crypto2 = { git = "https://github.com/shadowsocks/crypto2", rev = "dbfd3bb4751abd9945370dee25350765039d050a" }
 rand = "0.8.5"
 rand_chacha = "0.3.1"
-base64 = "0.13.0"
-regex = "1.6"
-getopts = "0.2"
-once_cell = "1.13.0"
+base64 = "0.21.0"
+regex = "1.7.1"
+getopts = "0.2.21"
+once_cell = "1.17.0"
 
 [dev-dependencies]
 clippy = "0.0.302"
-cargo-edit = "0.10.1"
+cargo-edit = "0.11.7"
