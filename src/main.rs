@@ -44,7 +44,7 @@ fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
     CSP_RNG.lock().unwrap().fill_bytes(&mut data);
 
     let salt = &base64_std.encode(&data[..]);
-    let caps = Regex::new(r"^([^=]+)=(.*)$").unwrap().captures(&input).unwrap();
+    let caps = Regex::new(r"^([^=]+)=(.*)$").unwrap().captures(input).unwrap();
 
     let encrypted_string = crypto::encrypt(algo, passwd, salt, info, caps.get(2).unwrap().as_str());
     let encoded_string = base64_std.encode(&encrypted_string[..]);
@@ -62,13 +62,13 @@ fn decode(infile: &str, outfile: &str, passwd: &str) {
             continue;
         }
 
-        let _ = writeln!(file, "{}", decode_line(&res, &passwd));
+        let _ = writeln!(file, "{}", decode_line(&res, passwd));
     }
     file.flush().unwrap();
 }
 
 fn decode_line(input: &str, passwd: &str) -> String{
-        let caps = Regex::new(r"^([^=]+)=([^:]+):([0-9A-Za-z+/=]+):([^:]*):([0-9A-Za-z+/=]+)$").unwrap().captures(&input).unwrap();
+        let caps = Regex::new(r"^([^=]+)=([^:]+):([0-9A-Za-z+/=]+):([^:]*):([0-9A-Za-z+/=]+)$").unwrap().captures(input).unwrap();
 
         let decoded_string = base64_std.decode(caps.get(5).unwrap().as_str()).unwrap();
         let decrypted_string = crypto::decrypt(caps.get(2).unwrap().as_str(), passwd, caps.get(3).unwrap().as_str(), caps.get(4).unwrap().as_str(), decoded_string.to_vec());
