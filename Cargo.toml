@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-crypto2 = { git = "https://github.com/shadowsocks/crypto2", rev = "f32eccf5ef588206017ee47c29614e727d8b1183" }
+crypto2 = { git = "https://github.com/shadowsocks/crypto2", rev = "dbfd3bb4751abd9945370dee25350765039d050a" }
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 base64 = "0.13.0"
