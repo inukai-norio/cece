@@ -4,6 +4,7 @@ use crypto2::blockmode::*;
 use crypto2::kdf::*;
 use std::collections::VecDeque;
 use regex::Regex;
+use base64::{Engine as _, engine::general_purpose::STANDARD as base64_std};
 
 mod pkcs7 {
     pub fn encrypt(data: Vec<u8>, block_len: usize)-> Vec<u8> {
@@ -42,7 +43,7 @@ fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize
     let mut duf = [0u8; 128];
     macro_rules! hkdf_oneshot {
         ($c:tt) => {
-            $c::oneshot(&base64::decode(salt).unwrap(), password.as_bytes(), info.as_bytes(), &mut duf)
+            $c::oneshot(&base64_std.decode(salt).unwrap(), password.as_bytes(), info.as_bytes(), &mut duf)
         }
     }
     match algorithm {
