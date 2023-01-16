@@ -30,7 +30,7 @@ fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
         let res = result.unwrap();
 
         if is_comment(&res) {
-            let _ = writeln!(file, "{}", res);
+            let _ = writeln!(file, "{res}");
             continue;
         }
 
@@ -60,7 +60,7 @@ fn decode(infile: &str, outfile: &str, passwd: &str) {
         let res = result.unwrap();
 
         if is_comment(&res) {
-            let _ = writeln!(file, "{}", res);
+            let _ = writeln!(file, "{res}");
             continue;
         }
 
@@ -81,7 +81,7 @@ fn decode_line(input: &str, passwd: &str) -> String{
 }
 
 fn print_usage(exe_name: &str, opts: &Options) {
-    let brief = format!("Usage: {} REPEAT [Options]", exe_name);
+    let brief = format!("Usage: {exe_name} REPEAT [Options]");
     print!("{}", opts.usage(&brief));
     process::exit(0);
 }
