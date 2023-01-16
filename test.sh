@@ -25,11 +25,11 @@ e1=(
 
 m1=(
     cbc
-    cfb
-    ofb1
-    ofb8
-    ofb64
-    ofb128
+    cfb1
+    cfb8
+    cfb64
+    cfb128
+    ofb
 )
 
 cargo build --release > /dev/null 2>&1
