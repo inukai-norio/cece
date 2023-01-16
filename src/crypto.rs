@@ -30,7 +30,7 @@ mod pkcs7 {
 }
 
 fn check_algorithm(algorithm: &str)-> Option<[&str; 3]> {
-    let re = Regex::new(r"(sha(?:224|256|384|512)|sm3)-((?:aes|aria|camellia)(?:128|192|256)|sm4)-(cbc|cfb|ofb(?:1|8|64|128))").unwrap();
+    let re = Regex::new(r"(sha(?:224|256|384|512)|sm3)-((?:aes|aria|camellia)(?:128|192|256)|sm4)-(cbc|cfb(?:1|8|64|128)|ofb)").unwrap();
     if re.is_match(algorithm) {
         let caps = re.captures(algorithm).unwrap();
         Some([1, 2, 3].map(|i| caps.get(i).unwrap().as_str()))
