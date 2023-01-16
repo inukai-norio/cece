@@ -49,9 +49,7 @@ fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
     let encrypted_string = crypto::encrypt(algo, passwd, salt, info, caps.get(2).unwrap().as_str());
     let encoded_string = base64_std.encode(&encrypted_string[..]);
 
-    let formatted_string = format!("{}={}:{}:{}:{}", caps.get(1).unwrap().as_str(), algo, salt, info, encoded_string);
-
-    return formatted_string;
+    format!("{}={}:{}:{}:{}", caps.get(1).unwrap().as_str(), algo, salt, info, encoded_string)
 }
 
 fn decode(infile: &str, outfile: &str, passwd: &str) {
@@ -75,9 +73,7 @@ fn decode_line(input: &str, passwd: &str) -> String{
         let decoded_string = base64_std.decode(caps.get(5).unwrap().as_str()).unwrap();
         let decrypted_string = crypto::decrypt(caps.get(2).unwrap().as_str(), passwd, caps.get(3).unwrap().as_str(), caps.get(4).unwrap().as_str(), decoded_string.to_vec());
 
-        let formatted_string = format!("{}={}", caps.get(1).unwrap().as_str(), decrypted_string);
-
-        return formatted_string;
+        format!("{}={}", caps.get(1).unwrap().as_str(), decrypted_string)
 }
 
 fn print_usage(exe_name: &str, opts: &Options) {
