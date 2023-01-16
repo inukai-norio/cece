@@ -16,5 +16,5 @@ jobs:
         with:
           toolchain: nightly
           override: true
-      - run: cargo build --verbose
+      - run: cargo build --release --verbose
       - run: bash test.sh
