@@ -54,7 +54,7 @@ fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize
         "sm3"    => hkdf_oneshot!(HkdfSm3),
         _ => ()
     }
-    let mut okm: VecDeque<u8> = duf.to_vec().into_iter().collect();
+    let mut okm: VecDeque<u8> = duf.iter().copied().collect();
     
     let mut key: Vec<u8> = Vec::new();
     for _i in 0..key_len {
