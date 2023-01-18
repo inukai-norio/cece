@@ -352,6 +352,7 @@ mod tests {
             ("md5", false),
 
             ("ssha256", false),
+            (" sha512", true),
         );
         let e1 = vec!(
             ("aes128", true),
@@ -377,6 +378,7 @@ mod tests {
             ("ecb", false),
 
             ("cfb111", false),
+            ("cbc ", true),
         );
         for h in &h1 {
             for e in &e1 {
