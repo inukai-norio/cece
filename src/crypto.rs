@@ -336,3 +336,65 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
         _ => "".to_string()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_check_algorithm() {
+        let h1 = vec!(
+            ("sha224", true),
+            ("sha256", true),
+            ("sha384", true),
+            ("sha512", true),
+            ("sm3", true),
+
+            ("md5", false),
+
+            ("ssha256", false),
+        );
+        let e1 = vec!(
+            ("aes128", true),
+            ("aes192", true),
+            ("aes256", true),
+            ("aria128", true),
+            ("aria192", true),
+            ("aria256", true),
+            ("camellia128", true),
+            ("camellia192", true),
+            ("camellia256", true),
+            ("sm4", true),
+            ("des", false),
+        );
+        let m1 = vec!(
+            ("cbc", true),
+            ("cfb1", true),
+            ("cfb8", true),
+            ("cfb64", true),
+            ("cfb128", true),
+            ("ofb", true),
+
+            ("ecb", false),
+
+            ("cfb111", false),
+        );
+        for h in &h1 {
+            for e in &e1 {
+                for m in &m1 {
+                    let a = &format!("{}-{}-{}", h.0, e.0, m.0);
+                    let c = check_algorithm(a);
+                    if h.1 & e.1 & m.1 {
+                        let c_unwrap = c.unwrap();
+                        assert_eq!(c_unwrap[0], h.0);
+                        assert_eq!(c_unwrap[1], e.0);
+                        assert_eq!(c_unwrap[2], m.0);
+                    }
+                    else {
+                        assert!(c.is_none());
+                    }
+                }
+            }
+        }
+
+    }
+}
