@@ -365,6 +365,7 @@ mod tests {
             ("camellia192", true, "camellia192"),
             ("camellia256", true, "camellia256"),
             ("sm4", true, "sm4"),
+
             ("des", false, "des"),
         );
         let m1 = vec!(
