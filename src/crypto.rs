@@ -343,42 +343,42 @@ mod tests {
     #[test]
     fn test_check_algorithm() {
         let h1 = vec!(
-            ("sha224", true),
-            ("sha256", true),
-            ("sha384", true),
-            ("sha512", true),
-            ("sm3", true),
+            ("sha224", true, "sha224"),
+            ("sha256", true, "sha256"),
+            ("sha384", true, "sha384"),
+            ("sha512", true, "sha512"),
+            ("sm3", true, "sm3"),
 
-            ("md5", false),
+            ("md5", false, "md5"),
 
-            ("ssha256", false),
-            (" sha512", true),
+            ("ssha256", false, "ssha256"),
+            (" sha512", true, "sha512"),
         );
         let e1 = vec!(
-            ("aes128", true),
-            ("aes192", true),
-            ("aes256", true),
-            ("aria128", true),
-            ("aria192", true),
-            ("aria256", true),
-            ("camellia128", true),
-            ("camellia192", true),
-            ("camellia256", true),
-            ("sm4", true),
-            ("des", false),
+            ("aes128", true, "aes128"),
+            ("aes192", true, "aes192"),
+            ("aes256", true, "aes256"),
+            ("aria128", true, "aria128"),
+            ("aria192", true, "aria192"),
+            ("aria256", true, "aria256"),
+            ("camellia128", true, "camellia128"),
+            ("camellia192", true, "camellia192"),
+            ("camellia256", true, "camellia256"),
+            ("sm4", true, "sm4"),
+            ("des", false, "des"),
         );
         let m1 = vec!(
-            ("cbc", true),
-            ("cfb1", true),
-            ("cfb8", true),
-            ("cfb64", true),
-            ("cfb128", true),
-            ("ofb", true),
+            ("cbc", true, "cbc"),
+            ("cfb1", true, "cfb1"),
+            ("cfb8", true, "cfb8"),
+            ("cfb64", true, "cfb64"),
+            ("cfb128", true, "cfb128"),
+            ("ofb", true, "ofb"),
 
-            ("ecb", false),
+            ("ecb", false, "ecb"),
 
-            ("cfb111", false),
-            ("cbc ", true),
+            ("cfb111", false, "cfb111"),
+            ("cbc ", true, "cbc"),
         );
         for h in &h1 {
             for e in &e1 {
@@ -387,9 +387,9 @@ mod tests {
                     let c = check_algorithm(a);
                     if h.1 & e.1 & m.1 {
                         let c_unwrap = c.unwrap();
-                        assert_eq!(c_unwrap[0], h.0);
-                        assert_eq!(c_unwrap[1], e.0);
-                        assert_eq!(c_unwrap[2], m.0);
+                        assert_eq!(c_unwrap[0], h.2);
+                        assert_eq!(c_unwrap[1], e.2);
+                        assert_eq!(c_unwrap[2], m.2);
                     }
                     else {
                         assert!(c.is_none());
