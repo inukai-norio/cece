@@ -16,7 +16,7 @@ mod pkcs7 {
         }
         plaintext
     }
-    
+
     pub fn decrypt(data: Vec<u8>)-> Vec<u8> {
         let mut plaintext = data;
         let l = plaintext.pop();
@@ -26,7 +26,7 @@ mod pkcs7 {
             }
         }
         plaintext
-    }    
+    }
 }
 
 fn check_algorithm(algorithm: &str)-> Option<[&str; 3]> {
@@ -55,7 +55,7 @@ fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize
         _ => ()
     }
     let mut okm: VecDeque<u8> = duf.iter().copied().collect();
-    
+
     let mut key: Vec<u8> = Vec::new();
     for _i in 0..key_len {
         key.push(okm.pop_front().unwrap());
@@ -348,9 +348,9 @@ mod tests {
             ("sha384", true, "sha384"),
             ("sha512", true, "sha512"),
             ("sm3", true, "sm3"),
-    
+
             ("md5", false, "md5"),
-    
+
             ("ssha256", false, "ssha256"),
             (" sha512", true, "sha512"),
         ];
