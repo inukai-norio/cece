@@ -404,4 +404,21 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_hkdf() {
+        let h1 = vec!(
+            ("sha224", "upOsTS7VSGipGSwEygZTZg==", "3I2NqGfVUN7JPfmQL38TvA=="),
+            ("sha256", "63DwHe3pr6+kSe7hsShlBA==", "4fYjiLP33U+VZpew6Cj+GA=="),
+            ("sha384", "RwzGU4fKShDHpoo7UUjI5Q==", "E9qmMQEABznExmWbhhGIhA=="),
+            ("sha512", "nXPJjnkegOvltMtFaTqjLw==", "3US1+j7as+yC+dD01mkF4g=="),
+            ("sm3", "YHH5F2KRkIiAdywJfmkuNg==", "DFNwevJ3PIReEj6tOz+01w=="),
+            ("md5", "AAAAAAAAAAAAAAAAAAAAAA==", "AAAAAAAAAAAAAAAAAAAAAA=="),
+        );
+        for h in h1 {
+            let (key, iv) = hkdf(h.0, "", "", "", Aes128Cbc::KEY_LEN, Aes128Cbc::IV_LEN);
+            assert_eq!(base64_std.encode(key), h.1);
+            assert_eq!(base64_std.encode(iv), h.2);
+        }
+    }
 }
