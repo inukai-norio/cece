@@ -340,21 +340,21 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn test_check_algorithm() {
-        let h1 = vec!(
+
+    mod algo {
+        pub const H: [(&str, bool, &str); 8] = [
             ("sha224", true, "sha224"),
             ("sha256", true, "sha256"),
             ("sha384", true, "sha384"),
             ("sha512", true, "sha512"),
             ("sm3", true, "sm3"),
-
+    
             ("md5", false, "md5"),
-
+    
             ("ssha256", false, "ssha256"),
             (" sha512", true, "sha512"),
-        );
-        let e1 = vec!(
+        ];
+        pub const E: [(&str, bool, &str); 11] = [
             ("aes128", true, "aes128"),
             ("aes192", true, "aes192"),
             ("aes256", true, "aes256"),
@@ -367,8 +367,8 @@ mod tests {
             ("sm4", true, "sm4"),
 
             ("des", false, "des"),
-        );
-        let m1 = vec!(
+        ];
+        pub const M: [(&str, bool, &str); 9] = [
             ("cbc", true, "cbc"),
             ("cfb1", true, "cfb1"),
             ("cfb8", true, "cfb8"),
@@ -380,10 +380,15 @@ mod tests {
 
             ("cfb111", false, "cfb111"),
             ("cbc ", true, "cbc"),
-        );
-        for h in &h1 {
-            for e in &e1 {
-                for m in &m1 {
+        ];
+    }
+
+
+    #[test]
+    fn test_check_algorithm() {
+        for h in algo::H.into_iter() {
+            for e in algo::E.into_iter() {
+                for m in algo::M.into_iter() {
                     let a = &format!("{}-{}-{}", h.0, e.0, m.0);
                     let c = check_algorithm(a);
                     if h.1 & e.1 & m.1 {
