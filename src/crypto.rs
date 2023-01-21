@@ -16,7 +16,7 @@ mod pkcs7 {
         }
         plaintext
     }
-    
+
     pub fn decrypt(data: Vec<u8>)-> Vec<u8> {
         let mut plaintext = data;
         let l = plaintext.pop();
@@ -26,7 +26,25 @@ mod pkcs7 {
             }
         }
         plaintext
-    }    
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use base64::{Engine as _, engine::general_purpose::STANDARD as base64_std};
+        #[test]
+        fn test_encrypt() {
+            let data = "";
+            let a = encrypt(data.as_bytes().to_vec(), 16);
+            assert_eq!(base64_std.encode(a.clone()), "EBAQEBAQEBAQEBAQEBAQEA==");
+        }
+
+        #[test]
+        fn test_decrypt() {
+            let a = decrypt(base64_std.decode("EBAQEBAQEBAQEBAQEBAQEA==").unwrap());
+            assert_eq!(base64_std.encode(a.clone()), "");
+        }
+    }
 }
 
 fn check_algorithm(algorithm: &str)-> Option<[&str; 3]> {
@@ -55,7 +73,7 @@ fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: usize
         _ => ()
     }
     let mut okm: VecDeque<u8> = duf.iter().copied().collect();
-    
+
     let mut key: Vec<u8> = Vec::new();
     for _i in 0..key_len {
         key.push(okm.pop_front().unwrap());
@@ -340,9 +358,9 @@ pub fn decrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: V
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn test_check_algorithm() {
-        let h1 = vec!(
+
+    mod algo {
+        pub const H: [(&str, bool, &str); 8] = [
             ("sha224", true, "sha224"),
             ("sha256", true, "sha256"),
             ("sha384", true, "sha384"),
@@ -353,8 +371,8 @@ mod tests {
 
             ("ssha256", false, "ssha256"),
             (" sha512", true, "sha512"),
-        );
-        let e1 = vec!(
+        ];
+        pub const E: [(&str, bool, &str); 11] = [
             ("aes128", true, "aes128"),
             ("aes192", true, "aes192"),
             ("aes256", true, "aes256"),
@@ -367,8 +385,8 @@ mod tests {
             ("sm4", true, "sm4"),
 
             ("des", false, "des"),
-        );
-        let m1 = vec!(
+        ];
+        pub const M: [(&str, bool, &str); 9] = [
             ("cbc", true, "cbc"),
             ("cfb1", true, "cfb1"),
             ("cfb8", true, "cfb8"),
@@ -380,10 +398,15 @@ mod tests {
 
             ("cfb111", false, "cfb111"),
             ("cbc ", true, "cbc"),
-        );
-        for h in &h1 {
-            for e in &e1 {
-                for m in &m1 {
+        ];
+    }
+
+
+    #[test]
+    fn test_check_algorithm() {
+        for h in algo::H.into_iter() {
+            for e in algo::E.into_iter() {
+                for m in algo::M.into_iter() {
                     let a = &format!("{}-{}-{}", h.0, e.0, m.0);
                     let c = check_algorithm(a);
                     if h.1 & e.1 & m.1 {
@@ -398,6 +421,22 @@ mod tests {
                 }
             }
         }
+    }
 
+    #[test]
+    fn test_hkdf() {
+        let h1 = vec!(
+            ("sha224", "upOsTS7VSGipGSwEygZTZg==", "3I2NqGfVUN7JPfmQL38TvA=="),
+            ("sha256", "63DwHe3pr6+kSe7hsShlBA==", "4fYjiLP33U+VZpew6Cj+GA=="),
+            ("sha384", "RwzGU4fKShDHpoo7UUjI5Q==", "E9qmMQEABznExmWbhhGIhA=="),
+            ("sha512", "nXPJjnkegOvltMtFaTqjLw==", "3US1+j7as+yC+dD01mkF4g=="),
+            ("sm3", "YHH5F2KRkIiAdywJfmkuNg==", "DFNwevJ3PIReEj6tOz+01w=="),
+            ("md5", "AAAAAAAAAAAAAAAAAAAAAA==", "AAAAAAAAAAAAAAAAAAAAAA=="),
+        );
+        for h in h1 {
+            let (key, iv) = hkdf(h.0, "", "", "", Aes128Cbc::KEY_LEN, Aes128Cbc::IV_LEN);
+            assert_eq!(base64_std.encode(key), h.1);
+            assert_eq!(base64_std.encode(iv), h.2);
+        }
     }
 }
