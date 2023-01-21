@@ -27,6 +27,24 @@ mod pkcs7 {
         }
         plaintext
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use base64::{Engine as _, engine::general_purpose::STANDARD as base64_std};
+        #[test]
+        fn test_encrypt() {
+            let data = "";
+            let a = encrypt(data.as_bytes().to_vec(), 16);
+            assert_eq!(base64_std.encode(a.clone()), "EBAQEBAQEBAQEBAQEBAQEA==");
+        }
+
+        #[test]
+        fn test_decrypt() {
+            let a = decrypt(base64_std.decode("EBAQEBAQEBAQEBAQEBAQEA==").unwrap());
+            assert_eq!(base64_std.encode(a.clone()), "");
+        }
+    }
 }
 
 fn check_algorithm(algorithm: &str)-> Option<[&str; 3]> {
