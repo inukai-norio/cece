@@ -6,5 +6,5 @@ mod util;
 mod encrypt;
 mod decrypt;
 
-pub use encrypt::encrypt;
-pub use decrypt::decrypt;
+pub use encrypt::execute as encrypt;
+pub use decrypt::execute as decrypt;

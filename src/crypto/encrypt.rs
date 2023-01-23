@@ -2,7 +2,7 @@ use crypto2::blockmode::*;
 
 use super::{pkcs7, util};
 
-pub fn encrypt(algorithm: &str, password: &str , salt: &str, info: &str, data: &str)-> Vec<u8> {
+pub fn execute(algorithm: &str, password: &str , salt: &str, info: &str, data: &str)-> Vec<u8> {
     let a = util::check_algorithm(algorithm).unwrap();
 
     macro_rules! make_key_and_iv {
