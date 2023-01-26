@@ -17,6 +17,19 @@ static CSP_RNG: Lazy<Mutex<ChaCha20Rng>> = Lazy::new(|| {
     Mutex::new(csp_rng)
 });
 
+struct EncodeCaps<'t> {
+    name: &'t str,
+    data: &'t str,
+}
+
+struct DecodeCaps<'t> {
+    name: &'t str,
+    algo: &'t str,
+    salt: &'t str,
+    info: &'t str,
+    data: &'t str,
+}
+
 mod crypto;
 
 fn is_comment(l: &str) -> bool {
@@ -39,17 +52,26 @@ fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
     file.flush().unwrap();
 }
 
+fn encode_caps(input: &str) -> EncodeCaps {
+    let caps = Regex::new(r"^([^=]+)=(.*)$").unwrap().captures(input).unwrap();
+
+    EncodeCaps {
+        name: caps.get(1).unwrap().as_str(),
+        data: caps.get(2).unwrap().as_str(),
+    }
+}
+
 fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
     let mut data = [0u8; 32];
     CSP_RNG.lock().unwrap().fill_bytes(&mut data);
 
     let salt = &base64_std.encode(&data[..]);
-    let caps = Regex::new(r"^([^=]+)=(.*)$").unwrap().captures(input).unwrap();
+    let caps = encode_caps(input);
 
-    let encrypted_string = crypto::encrypt(algo, passwd, salt, info, caps.get(2).unwrap().as_str());
+    let encrypted_string = crypto::encrypt(algo, passwd, salt, info, caps.data);
     let encoded_string = base64_std.encode(&encrypted_string[..]);
 
-    format!("{}={}:{}:{}:{}", caps.get(1).unwrap().as_str(), algo, salt, info, encoded_string)
+    format!("{}={}:{}:{}:{}", caps.name, algo, salt, info, encoded_string)
 }
 
 fn decode(infile: &str, outfile: &str, passwd: &str) {
@@ -67,13 +89,25 @@ fn decode(infile: &str, outfile: &str, passwd: &str) {
     file.flush().unwrap();
 }
 
+fn decode_caps(input: &str) -> DecodeCaps {
+    let caps = Regex::new(r"^([^=]+)=([^:]+):([0-9A-Za-z+/=]+):([^:]*):([0-9A-Za-z+/=]+)$").unwrap().captures(input).unwrap();
+
+    DecodeCaps {
+        name: caps.get(1).unwrap().as_str(),
+        algo: caps.get(2).unwrap().as_str(),
+        salt: caps.get(3).unwrap().as_str(),
+        info: caps.get(4).unwrap().as_str(),
+        data: caps.get(5).unwrap().as_str(),
+    }
+}
+
 fn decode_line(input: &str, passwd: &str) -> String{
-        let caps = Regex::new(r"^([^=]+)=([^:]+):([0-9A-Za-z+/=]+):([^:]*):([0-9A-Za-z+/=]+)$").unwrap().captures(input).unwrap();
+        let caps = decode_caps(input);
 
-        let decoded_string = base64_std.decode(caps.get(5).unwrap().as_str()).unwrap();
-        let decrypted_string = crypto::decrypt(caps.get(2).unwrap().as_str(), passwd, caps.get(3).unwrap().as_str(), caps.get(4).unwrap().as_str(), decoded_string.to_vec());
+        let decoded_string = base64_std.decode(caps.data).unwrap();
+        let decrypted_string = crypto::decrypt(caps.algo, passwd, caps.salt, caps.info, decoded_string.to_vec());
 
-        format!("{}={}", caps.get(1).unwrap().as_str(), decrypted_string)
+        format!("{}={}", caps.name, decrypted_string)
 }
 
 fn print_usage(exe_name: &str, opts: &Options) {
