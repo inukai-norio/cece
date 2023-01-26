@@ -102,12 +102,12 @@ fn decode_caps(input: &str) -> DecodeCaps {
 }
 
 fn decode_line(input: &str, passwd: &str) -> String{
-        let caps = decode_caps(input);
+    let caps = decode_caps(input);
 
-        let decoded_string = base64_std.decode(caps.data).unwrap();
-        let decrypted_string = crypto::decrypt(caps.algo, passwd, caps.salt, caps.info, decoded_string.to_vec());
+    let decoded_string = base64_std.decode(caps.data).unwrap();
+    let decrypted_string = crypto::decrypt(caps.algo, passwd, caps.salt, caps.info, decoded_string.to_vec());
 
-        format!("{}={}", caps.name, decrypted_string)
+    format!("{}={}", caps.name, decrypted_string)
 }
 
 fn print_usage(exe_name: &str, opts: &Options) {
