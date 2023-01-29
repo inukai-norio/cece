@@ -61,10 +61,7 @@ fn is_comment(l: &str) -> bool {
     Regex::new(r"^(#.*|\s*)$").unwrap().is_match(l)
 }
 
-fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
-    let instream = BufReader::new(File::open(infile).unwrap());
-    let mut outstream = BufWriter::new(File::create(outfile).unwrap());
-
+fn encode(instream: &mut dyn BufRead, outstream: &mut dyn Write, passwd: &str, algo: &str, info: &str) {
     for result in instream.lines() {
         let res = result.unwrap();
 
@@ -91,10 +88,7 @@ fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
     format!("{}={}:{}:{}:{}", caps.name, algo, salt, info, encoded_string)
 }
 
-fn decode(infile: &str, outfile: &str, passwd: &str) {
-    let instream = BufReader::new(File::open(infile).unwrap());
-    let mut outstream = BufWriter::new(File::create(outfile).unwrap());
-
+fn decode(instream: &mut dyn BufRead, outstream: &mut dyn Write, passwd: &str) {
     for result in instream.lines() {
         let res = result.unwrap();
 
@@ -157,12 +151,16 @@ fn main() {
     }
     if matches.opt_present("e") {
         if !matches.opt_present("d") {
-            return encode(&input, &output, &passwd, &algo, &info);
+            let mut instream = BufReader::new(File::open(input).unwrap());
+            let mut outstream = BufWriter::new(File::create(output).unwrap());
+            return encode(&mut instream, &mut outstream, &passwd, &algo, &info);
         }
         panic!("{}","-e or -d".to_string());
     }
     if matches.opt_present("d") {
-        return decode(&input, &output, &passwd);
+        let mut instream = BufReader::new(File::open(input).unwrap());
+        let mut outstream = BufWriter::new(File::create(output).unwrap());
+        return decode(&mut instream, &mut outstream, &passwd);
     }
     panic!("{}","-e or -d".to_string());
 }
