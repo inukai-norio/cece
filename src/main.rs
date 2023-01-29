@@ -4,7 +4,7 @@ use getopts::Options;
 use std::env;
 use std::process;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Write};
+use std::io::{stdin, stdout, BufRead, BufReader, Write, BufWriter};
 use rand::prelude::*;
 use rand_chacha::ChaCha20Rng;
 use regex::Regex;
@@ -61,20 +61,18 @@ fn is_comment(l: &str) -> bool {
     Regex::new(r"^(#.*|\s*)$").unwrap().is_match(l)
 }
 
-fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
-    let mut file = File::create(outfile).unwrap();
-
-    for result in BufReader::new(File::open(infile).unwrap()).lines() {
+fn encode(instream: &mut dyn BufRead, outstream: &mut dyn Write, passwd: &str, algo: &str, info: &str) {
+    for result in instream.lines() {
         let res = result.unwrap();
 
         if is_comment(&res) {
-            let _ = writeln!(file, "{res}");
+            let _ = writeln!(outstream, "{res}");
             continue;
         }
 
-        let _ = writeln!(file, "{}", encode_line(&res, passwd, algo, info));
+        let _ = writeln!(outstream, "{}", encode_line(&res, passwd, algo, info));
     }
-    file.flush().unwrap();
+    outstream.flush().unwrap();
 }
 
 fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
@@ -90,19 +88,18 @@ fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
     format!("{}={}:{}:{}:{}", caps.name, algo, salt, info, encoded_string)
 }
 
-fn decode(infile: &str, outfile: &str, passwd: &str) {
-    let mut file = File::create(outfile).unwrap();
-    for result in BufReader::new(File::open(infile).unwrap()).lines() {
+fn decode(instream: &mut dyn BufRead, outstream: &mut dyn Write, passwd: &str) {
+    for result in instream.lines() {
         let res = result.unwrap();
 
         if is_comment(&res) {
-            let _ = writeln!(file, "{res}");
+            let _ = writeln!(outstream, "{res}");
             continue;
         }
 
-        let _ = writeln!(file, "{}", decode_line(&res, passwd));
+        let _ = writeln!(outstream, "{}", decode_line(&res, passwd));
     }
-    file.flush().unwrap();
+    outstream.flush().unwrap();
 }
 
 fn decode_line(input: &str, passwd: &str) -> String{
@@ -149,17 +146,46 @@ fn main() {
     let info = matches.opt_str("n").unwrap_or_default();
     let algo = matches.opt_str("a").unwrap_or_else(|| "sha256-aes128-cbc".to_string());
 
-    if input.is_empty() || output.is_empty() {
-        panic!("{}","none file name".to_string());
+    macro_rules! file_selects_and_do {
+        ($func_name:tt) => {
+            match input.is_empty() {
+                true => match output.is_empty() {
+                    true => $func_name!(stdin(), stdout()),
+                    _ => $func_name!(stdin(), File::create(output).unwrap()),
+                },
+                _ => match output.is_empty() {
+                    true => $func_name!(File::open(input).unwrap(), stdout()),
+                    _ => $func_name!(File::open(input).unwrap(), File::create(output).unwrap()),
+                },
+            }
+        };
     }
     if matches.opt_present("e") {
         if !matches.opt_present("d") {
-            return encode(&input, &output, &passwd, &algo, &info);
+            macro_rules! _encode {
+                ($input:expr, $output:expr) => {
+                    {
+                        let mut instream = BufReader::new($input);
+                        let mut outstream = BufWriter::new($output);
+                        return encode(&mut instream, &mut outstream, &passwd, &algo, &info);
+                    }
+                };
+            }
+            file_selects_and_do!(_encode)
         }
         panic!("{}","-e or -d".to_string());
     }
     if matches.opt_present("d") {
-        return decode(&input, &output, &passwd);
+        macro_rules! _decode {
+            ($input:expr, $output:expr) => {
+                {
+                    let mut instream = BufReader::new($input);
+                    let mut outstream = BufWriter::new($output);
+                    return decode(&mut instream, &mut outstream, &passwd);
+                }
+            };
+        }
+        file_selects_and_do!(_decode)
     }
     panic!("{}","-e or -d".to_string());
 }
