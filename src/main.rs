@@ -4,7 +4,7 @@ use getopts::Options;
 use std::env;
 use std::process;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Write, BufWriter};
 use rand::prelude::*;
 use rand_chacha::ChaCha20Rng;
 use regex::Regex;
@@ -62,19 +62,20 @@ fn is_comment(l: &str) -> bool {
 }
 
 fn encode(infile: &str, outfile: &str, passwd: &str, algo: &str, info: &str) {
-    let mut file = File::create(outfile).unwrap();
+    let instream = BufReader::new(File::open(infile).unwrap());
+    let mut outstream = BufWriter::new(File::create(outfile).unwrap());
 
-    for result in BufReader::new(File::open(infile).unwrap()).lines() {
+    for result in instream.lines() {
         let res = result.unwrap();
 
         if is_comment(&res) {
-            let _ = writeln!(file, "{res}");
+            let _ = writeln!(outstream, "{res}");
             continue;
         }
 
-        let _ = writeln!(file, "{}", encode_line(&res, passwd, algo, info));
+        let _ = writeln!(outstream, "{}", encode_line(&res, passwd, algo, info));
     }
-    file.flush().unwrap();
+    outstream.flush().unwrap();
 }
 
 fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
@@ -91,18 +92,20 @@ fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
 }
 
 fn decode(infile: &str, outfile: &str, passwd: &str) {
-    let mut file = File::create(outfile).unwrap();
-    for result in BufReader::new(File::open(infile).unwrap()).lines() {
+    let instream = BufReader::new(File::open(infile).unwrap());
+    let mut outstream = BufWriter::new(File::create(outfile).unwrap());
+
+    for result in instream.lines() {
         let res = result.unwrap();
 
         if is_comment(&res) {
-            let _ = writeln!(file, "{res}");
+            let _ = writeln!(outstream, "{res}");
             continue;
         }
 
-        let _ = writeln!(file, "{}", decode_line(&res, passwd));
+        let _ = writeln!(outstream, "{}", decode_line(&res, passwd));
     }
-    file.flush().unwrap();
+    outstream.flush().unwrap();
 }
 
 fn decode_line(input: &str, passwd: &str) -> String{
