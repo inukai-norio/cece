@@ -22,17 +22,17 @@ pub fn decrypt(data: Vec<u8>)-> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use base64::{Engine as _, engine::general_purpose::STANDARD as base64_std};
+    use crypto2::encoding::base64;
     #[test]
     fn test_encrypt() {
         let data = "";
         let a = encrypt(data.as_bytes().to_vec(), 16);
-        assert_eq!(base64_std.encode(a), "EBAQEBAQEBAQEBAQEBAQEA==");
+        assert_eq!(base64::encode(a), "EBAQEBAQEBAQEBAQEBAQEA==");
     }
 
     #[test]
     fn test_decrypt() {
-        let a = decrypt(base64_std.decode("EBAQEBAQEBAQEBAQEBAQEA==").unwrap());
-        assert_eq!(base64_std.encode(a), "");
+        let a = decrypt(base64::decode("EBAQEBAQEBAQEBAQEBAQEA==").unwrap());
+        assert_eq!(base64::encode(a), "");
     }
 }

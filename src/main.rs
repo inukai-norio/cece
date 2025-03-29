@@ -10,7 +10,7 @@ use rand_chacha::ChaCha20Rng;
 use regex::Regex;
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
-use base64::{Engine as _, engine::general_purpose::STANDARD as base64_std};
+use crypto2::encoding::base64;
 
 static CSP_RNG: Lazy<Mutex<ChaCha20Rng>> = Lazy::new(|| {
     let csp_rng = ChaCha20Rng::from_entropy();
@@ -79,11 +79,11 @@ fn encode_line(input: &str, passwd: &str, algo: &str, info: &str) -> String{
     let mut data = [0u8; 32];
     CSP_RNG.lock().unwrap().fill_bytes(&mut data);
 
-    let salt = &base64_std.encode(&data[..]);
+    let salt = &base64::encode(&data[..]);
     let caps = EncodeCaps::new(input);
 
     let encrypted_string = crypto::encrypt(algo, passwd, salt, info, caps.data);
-    let encoded_string = base64_std.encode(&encrypted_string[..]);
+    let encoded_string = base64::encode(&encrypted_string[..]);
 
     format!("{}={}:{}:{}:{}", caps.name, algo, salt, info, encoded_string)
 }
@@ -105,7 +105,7 @@ fn decode(instream: &mut dyn BufRead, outstream: &mut dyn Write, passwd: &str) {
 fn decode_line(input: &str, passwd: &str) -> String{
     let caps = DecodeCaps::new(input);
 
-    let decoded_string = base64_std.decode(caps.data).unwrap();
+    let decoded_string = base64::decode(caps.data).unwrap();
     let decrypted_string = crypto::decrypt(caps.algo, passwd, caps.salt, caps.info, decoded_string.to_vec());
 
     format!("{}={}", caps.name, decrypted_string)
