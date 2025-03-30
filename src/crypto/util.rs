@@ -1,7 +1,7 @@
 use crypto2::kdf::*;
+use crypto2::encoding::base64;
 use std::collections::VecDeque;
 use regex::Regex;
-use base64::{Engine as _, engine::general_purpose::STANDARD as base64_std};
 
 pub fn check_algorithm(algorithm: &str)-> Option<[&str; 3]> {
     let re = Regex::new(r"^\s*(sha(?:224|256|384|512)|sm3)-((?:aes|aria|camellia)(?:128|192|256)|sm4)-(cbc|cfb(?:1|8|64|128)|ofb)\s*$").unwrap();
@@ -17,7 +17,7 @@ pub fn hkdf(algorithm: &str, password: &str , salt: &str, info: &str, key_len: u
     let mut duf = [0u8; 128];
     macro_rules! hkdf_oneshot {
         ($c:tt) => {
-            $c::oneshot(&base64_std.decode(salt).unwrap(), password.as_bytes(), info.as_bytes(), &mut duf)
+            $c::oneshot(&base64::decode(salt).unwrap(), password.as_bytes(), info.as_bytes(), &mut duf)
         }
     }
     match algorithm {
@@ -122,8 +122,8 @@ mod tests {
         );
         for h in h1 {
             let (key, iv) = hkdf(h.0, "", "", "", Aes128Cbc::KEY_LEN, Aes128Cbc::IV_LEN);
-            assert_eq!(base64_std.encode(key), h.1);
-            assert_eq!(base64_std.encode(iv), h.2);
+            assert_eq!(base64::encode(key), h.1);
+            assert_eq!(base64::encode(iv), h.2);
         }
     }
 }
